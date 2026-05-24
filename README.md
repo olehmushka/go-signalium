@@ -22,7 +22,7 @@ A small but production-shaped Go service, built on Palantir's open-source stack,
 - **Mastery of the Palantir Go stack** — witchcraft-go-server, Conjure IDL, `wlog`/`werror`, fx owning the lifecycle, with the framework inversion documented in [ADR 0005](./docs/decisions/0005-fx-wrapping-witchcraft.md).
 - **A real engineering bar** — typed sqlc query layer, Atlas migrations, hermetic unit + testcontainers integration + fuzz tests run with `-race`, strict `golangci-lint`, CodeQL/govulncheck, and signed releases with SBOMs.
 
-Every non-trivial decision has an [ADR](./docs/decisions); start at [`docs/architecture.md`](./docs/architecture.md).
+For the full narrative — the decisions, tradeoffs, and failure reasoning — read [`docs/design.md`](./docs/design.md). Every non-trivial decision also has an [ADR](./docs/decisions).
 
 ## How a message flows
 
@@ -156,7 +156,8 @@ go-signalium/
 
 | Doc | When to read it |
 |---|---|
-| [`docs/architecture.md`](./docs/architecture.md) | Big picture, fx wiring, request lifecycle. **Start here.** |
+| [`docs/design.md`](./docs/design.md) | The narrative deep-dive: decisions, tradeoffs, failure reasoning. **Start here.** |
+| [`docs/architecture.md`](./docs/architecture.md) | Big picture, fx wiring, request lifecycle. |
 | [`docs/rest-api.md`](./docs/rest-api.md) | All endpoints, response envelope, error model, Conjure pointer. |
 | [`docs/persistence.md`](./docs/persistence.md) | Schema, sqlc layout, Atlas migrations, `search_path` gotcha. |
 | [`docs/signal-cli.md`](./docs/signal-cli.md) | TCP JSON-RPC + HTTP integration, reconnect, event demux. |

@@ -63,3 +63,37 @@ Two witchcraft behaviours worth knowing:
 - **Some timer aggregates are blocklisted by default.** witchcraft suppresses
   `p50/mean/min/stddev` and the 1m/5m/15m rates for timers; `count`, `max`, `p99`,
   and `p999` survive. Build dashboards on the surviving keys.
+
+## Visualizing the metrics
+
+A ready-made Grafana dashboard lives at
+[`deploy/grafana/outbox-dashboard.json`](../deploy/grafana/outbox-dashboard.json):
+three rows — Delivery (terminal-outcome rate, send latency), Backlog (depth, oldest
+age), and Worker health (claim latency, retry rate, dropped inbound). The datasource
+is a template variable, so it imports cleanly into any Grafana
+(*Dashboards → Import → Upload JSON*) and you pick the datasource at load time.
+
+The dashboard targets a **Prometheus** datasource. witchcraft emits to `metric.1`
+logs, not to Prometheus, so wiring the two is one deliberate step — pick whichever
+fits your platform:
+
+1. **Prometheus exporter on the registry.** Add a small exporter that reads the same
+   `metrics.DefaultMetricsRegistry` and serves `/metrics`. This is the path ADR 0009
+   flags under "Revisit if" for adopting an external backend; the metric values are
+   already there, it is purely an exposition format.
+2. **Log-based metrics.** Ship the `metric.1` lines to Loki / a log-metrics pipeline
+   and derive series from them.
+
+Either way, the dashboard assumes the conventional mapping from the witchcraft names
+to Prometheus: dots become underscores and tags become labels, with timer quantiles
+carried on a `quantile` label. For example:
+
+| Witchcraft metric | Prometheus series used by the dashboard |
+|---|---|
+| `signalium.outbox.terminal{status}` | `signalium_outbox_terminal{status="…"}` |
+| `signalium.outbox.send{outcome}` (timer) | `signalium_outbox_send{outcome="…",quantile="0.99"}` |
+| `signalium.outbox.backlog.depth` (gauge) | `signalium_outbox_backlog_depth` |
+| `signalium.outbox.retry` (counter) | `signalium_outbox_retry` |
+
+If your exporter names things differently, the panel queries are the only thing to
+adjust.
