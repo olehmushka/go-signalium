@@ -6,14 +6,15 @@ run:
   modules-download-mode: readonly
 
 issues:
-  exclude-dirs:
-    - internal/generated
-    - internal/repo/sqlc
   max-issues-per-linter: 0
   max-same-issues: 0
 
 linters:
   default: none
+  exclusions:
+    paths:
+      - internal/generated
+      - internal/repo/sqlc
   enable:
     - bodyclose
     - contextcheck
