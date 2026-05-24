@@ -1,0 +1,35 @@
+name: Go Test and Coverage
+
+# This tells GitHub to run the script every time you push or make a PR
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  run-tests:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v6
+
+    - name: Set up Go
+      uses: actions/setup-go@v6
+      with:
+        go-version: '1.26.3' # Change this to your Go version if needed
+
+    - name: Install dependencies
+      run: go mod download
+
+    # This step generates the "coverage.txt" file Codecov needs
+    - name: Run Tests with Coverage
+      run: go test -race -count=1 -coverprofile=cover.out -covermode=atomic ./...
+
+    # This is your step! It takes "coverage.txt" and uploads it
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v5
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        files: ./coverage.out
