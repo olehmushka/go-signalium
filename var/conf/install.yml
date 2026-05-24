@@ -65,3 +65,6 @@ cron:
     schedule: "0 * * * * *"
     directories: ["./tmp"]
     fileTtl: "10m"
+  timeoutReaper:
+    enabled: true
+    schedule: "0 * * * * *"

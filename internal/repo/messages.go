@@ -156,6 +156,33 @@ func (r *Messages) MarkFailed(ctx context.Context, id uuid.UUID, lastErr string,
 	return nil
 }
 
+// MarkTimedOut transitions every overdue, not-yet-terminal row to TIMED_OUT in
+// one statement and returns how many rows were flipped. The timeout reaper calls
+// it on a fixed cadence; callers without overdue rows get a zero count and no
+// error.
+func (r *Messages) MarkTimedOut(ctx context.Context) (int64, error) {
+	n, err := r.q.MarkTimedOut(ctx)
+	if err != nil {
+		return 0, werror.WrapWithContextParams(ctx, err, "mark timed out")
+	}
+	return n, nil
+}
+
+// BacklogStats returns the number of rows still awaiting delivery (PENDING or
+// FAILED) and the age of the oldest such row. The reaper samples it to publish
+// the backlog gauges.
+func (r *Messages) BacklogStats(ctx context.Context) (depth int, oldest time.Duration, err error) {
+	row, err := r.q.BacklogStats(ctx)
+	if err != nil {
+		return 0, 0, werror.WrapWithContextParams(ctx, err, "backlog stats")
+	}
+	var ageSeconds int64
+	if v, ok := row.OldestAgeSeconds.(int64); ok {
+		ageSeconds = v
+	}
+	return int(row.Depth), time.Duration(ageSeconds) * time.Second, nil
+}
+
 // Resend resets a terminal-failed row back to PENDING for another attempt.
 // Returns nil when no row matches the terminal-status guard — the handler
 // re-reads the row after calling Resend and surfaces the (unchanged) state.

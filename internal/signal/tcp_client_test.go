@@ -14,6 +14,11 @@ import (
 	"github.com/olehmushka/go-signalium/internal/signal/testfake"
 )
 
+// noopMetrics satisfies signal.Metrics without recording anything.
+type noopMetrics struct{}
+
+func (noopMetrics) IncInboundDropped(string) {}
+
 func newClient(t *testing.T, fake *testfake.Daemon, ignoreResults bool) *signal.TCPClient {
 	t.Helper()
 	host, port := fake.HostPort()
@@ -26,7 +31,7 @@ func newClient(t *testing.T, fake *testfake.Daemon, ignoreResults bool) *signal.
 				IgnoreResults:     ignoreResults,
 			},
 		},
-	}, testLogger())
+	}, testLogger(), noopMetrics{})
 	cli.Start(context.Background())
 	t.Cleanup(func() {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)

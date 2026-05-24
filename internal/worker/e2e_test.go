@@ -23,6 +23,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	pkgmetrics "github.com/palantir/pkg/metrics"
 	"github.com/palantir/witchcraft-go-logging/wlog"
 	"github.com/palantir/witchcraft-go-logging/wlog/svclog/svc1log"
 	"github.com/stretchr/testify/assert"
@@ -34,6 +35,7 @@ import (
 	"github.com/olehmushka/go-signalium/internal/config"
 	"github.com/olehmushka/go-signalium/internal/domain"
 	"github.com/olehmushka/go-signalium/internal/handler"
+	appmetrics "github.com/olehmushka/go-signalium/internal/metrics"
 	"github.com/olehmushka/go-signalium/internal/repo"
 	"github.com/olehmushka/go-signalium/internal/service"
 	"github.com/olehmushka/go-signalium/internal/signal"
@@ -41,6 +43,12 @@ import (
 	"github.com/olehmushka/go-signalium/internal/storage"
 	"github.com/olehmushka/go-signalium/internal/worker"
 )
+
+// testMetrics returns an Outbox backed by a throwaway registry so tests exercise
+// the real emission path without asserting on it.
+func testMetrics() *appmetrics.Outbox {
+	return appmetrics.NewOutbox(pkgmetrics.NewRootMetricsRegistry())
+}
 
 func TestE2E_PostToSent(t *testing.T) {
 	t.Parallel()
@@ -80,7 +88,7 @@ func TestE2E_PostToSent(t *testing.T) {
 	mstore := newMemStore(tmp)
 
 	// Real TCP client against the fake daemon.
-	tcp := signal.NewTCPClient(install, logger)
+	tcp := signal.NewTCPClient(install, logger, testMetrics())
 	tcp.Start(context.Background())
 	t.Cleanup(func() {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
@@ -90,7 +98,7 @@ func TestE2E_PostToSent(t *testing.T) {
 
 	// Send service and worker driven by the same in-memory backends.
 	sendSvc := service.NewSendMessageService(mem, mstore, install, logger)
-	wkr := worker.NewWorker(mem, mstore, tcp, noopNotifier{}, install, logger)
+	wkr := worker.NewWorker(mem, mstore, tcp, noopNotifier{}, testMetrics(), install, logger)
 	workerCtx, cancelWorker := context.WithCancel(context.Background())
 	t.Cleanup(cancelWorker)
 	go wkr.Run(workerCtx)
@@ -199,6 +207,11 @@ func (m *memRepo) ClaimPending(_ context.Context, lease time.Duration) (domain.S
 	now := time.Now().UTC()
 	for _, r := range m.rows {
 		eligible := r.Status == domain.StatusPending || (r.Status == domain.StatusSending && r.NextAttemptAt.Before(now))
+		// Mirror the SQL claim: an overdue row (timeout_at <= now) is invisible to
+		// the worker; the timeout reaper terminalises it instead.
+		if r.TimeoutAt != nil && !r.TimeoutAt.After(now) {
+			continue
+		}
 		if eligible && !r.NextAttemptAt.After(now) {
 			r.Status = domain.StatusSending
 			r.Attempts++

@@ -45,6 +45,7 @@ WITH claimed AS (
    WHERE deleted_at IS NULL
      AND (status = 'PENDING' OR (status = 'SENDING' AND next_attempt_at < now()))
      AND next_attempt_at <= now()
+     AND (timeout_at IS NULL OR timeout_at > now())
    ORDER BY next_attempt_at
    FOR UPDATE SKIP LOCKED
    LIMIT 1
@@ -64,6 +65,27 @@ UPDATE signalium.signal_messages
        result_id   = sqlc.arg(result_id),
        modified_at = now()
  WHERE signal_message_id = sqlc.arg(signal_message_id);
+
+-- name: MarkTimedOut :execrows
+-- Transition every overdue, not-yet-terminal row to TIMED_OUT in one statement.
+-- A row is overdue when its caller-supplied timeout_at has passed; SENT and the
+-- failed-terminal states are left untouched. Returns the number of rows flipped.
+UPDATE signalium.signal_messages
+   SET status      = 'TIMED_OUT',
+       modified_at = now()
+ WHERE deleted_at IS NULL
+   AND status IN ('PENDING', 'SENDING', 'FAILED')
+   AND timeout_at IS NOT NULL
+   AND timeout_at <= now();
+
+-- name: BacklogStats :one
+-- Depth and age of the work still awaiting delivery. PENDING and FAILED are both
+-- "scheduled" (FAILED rows carry a future next_attempt_at), so both count.
+SELECT COUNT(*)::int AS depth,
+       COALESCE(EXTRACT(EPOCH FROM (now() - MIN(created_at)))::bigint, 0) AS oldest_age_seconds
+  FROM signalium.signal_messages
+ WHERE deleted_at IS NULL
+   AND status IN ('PENDING', 'FAILED');
 
 -- name: MarkFailed :exec
 UPDATE signalium.signal_messages

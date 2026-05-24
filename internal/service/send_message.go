@@ -280,12 +280,10 @@ func sanitizeFilename(raw string) string {
 	return cleaned
 }
 
-func correlationFromCtx(ctx context.Context, id uuid.UUID) string {
-	// witchcraft populates a request-id; service code reads it via wlog if
-	// needed. Here we fall back to the message uuid so the row always has a
-	// non-empty correlation id (NOT NULL column).
-	if logger := svc1log.FromContext(ctx); logger != nil {
-		_ = logger // currently no public accessor for the request id; keep slot for future wlog API
-	}
+func correlationFromCtx(_ context.Context, id uuid.UUID) string {
+	// The message UUID is the correlation id: unique per message and always
+	// present, so the NOT NULL column is satisfied without depending on a
+	// request-scoped id. Request/trace correlation is already carried in the
+	// structured logs by witchcraft middleware.
 	return id.String()
 }

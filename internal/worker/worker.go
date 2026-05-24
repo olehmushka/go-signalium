@@ -18,6 +18,7 @@ import (
 
 	"github.com/olehmushka/go-signalium/internal/config"
 	"github.com/olehmushka/go-signalium/internal/domain"
+	appmetrics "github.com/olehmushka/go-signalium/internal/metrics"
 	"github.com/olehmushka/go-signalium/internal/repo"
 	"github.com/olehmushka/go-signalium/internal/service"
 	"github.com/olehmushka/go-signalium/internal/signal"
@@ -40,10 +41,22 @@ var Module = fx.Module(
 		func(s *storage.ObjectStore) Downloader { return s },
 		func(c *signal.TCPClient) Sender { return c },
 		func(n *service.SlackNotifier) FailureNotifier { return n },
+		func(o *appmetrics.Outbox) Metrics { return o },
 		NewWorker,
 	),
 	fx.Invoke(RegisterLifecycle),
 )
+
+// Metrics is the slice of metrics.Outbox the worker and the timeout reaper emit
+// to. Kept as a consumer-owned interface so tests can inject a throwaway emitter.
+type Metrics interface {
+	ObserveClaim(d time.Duration)
+	ObserveSend(d time.Duration, ok bool)
+	IncTerminal(status string)
+	IncTerminalN(status string, n int64)
+	IncRetry()
+	SetBacklog(depth int, oldestAge time.Duration)
+}
 
 // Repo is the slice of repo.Messages the worker needs.
 type Repo interface {
@@ -80,6 +93,7 @@ type Worker struct {
 	store    Downloader
 	signal   Sender
 	notifier FailureNotifier
+	metrics  Metrics
 	cfg      config.WorkerConfig
 	account  string
 	logger   svc1log.Logger
@@ -96,6 +110,7 @@ func NewWorker(
 	store Downloader,
 	sender Sender,
 	notifier FailureNotifier,
+	m Metrics,
 	install config.Install,
 	logger svc1log.Logger,
 ) *Worker {
@@ -104,6 +119,7 @@ func NewWorker(
 		store:    store,
 		signal:   sender,
 		notifier: notifier,
+		metrics:  m,
 		cfg:      install.Worker,
 		account:  install.SignalCli.SenderPhoneNumber,
 		logger:   logger,
@@ -190,7 +206,9 @@ func (w *Worker) runConcurrent(ctx context.Context, poll time.Duration, n int) {
 // tick attempts to claim one row and dispatch it. Returns true iff a row
 // was claimed (so the caller can hot-loop until the table drains).
 func (w *Worker) tick(ctx context.Context) bool {
+	start := time.Now()
 	msg, err := w.repo.ClaimPending(ctx, w.cfg.LeaseDuration)
+	w.metrics.ObserveClaim(time.Since(start))
 	if err != nil {
 		if errors.Is(err, domain.ErrNotFound) {
 			return false
@@ -219,18 +237,60 @@ func (w *Worker) dispatch(ctx context.Context, msg domain.SignalMessage) {
 		w.fail(sendCtx, msg, err)
 		return
 	}
+	sendStart := time.Now()
 	res, err := w.signal.Send(sendCtx, params)
+	w.metrics.ObserveSend(time.Since(sendStart), err == nil)
 	if err != nil {
 		w.fail(sendCtx, msg, err)
 		return
 	}
-	if err := w.repo.MarkSent(sendCtx, msg.ID, res.ResultID()); err != nil {
+	if err := w.markSent(sendCtx, msg.ID, res.ResultID()); err != nil {
 		w.logger.Error("mark sent failed",
 			svc1log.SafeParam("id", msg.ID.String()),
 			svc1log.Stacktrace(err))
-		// Row stays in SENDING; lease expires and a future tick re-claims it.
-		// signal-cli already accepted the send, so the next attempt produces a
-		// duplicate — acceptable until M5+ introduces de-dup on the send path.
+		// Row stays in SENDING; the lease expires and a future tick re-claims it.
+		// signal-cli already accepted the send, so the re-claim re-sends — a
+		// duplicate. markSent's bounded retry shrinks this window to a crash
+		// between a successful send and a committed MarkSent; the principled
+		// crash-proof fix (idempotent re-claim keyed on result_id) is recorded
+		// in docs/decisions/0011-exactly-once-send.md.
+		return
+	}
+	w.metrics.IncTerminal(appmetrics.StatusSent)
+}
+
+// markSent retries the SENT transition a few times before giving up. The send
+// has already succeeded at signal-cli, so a transient DB blip here would
+// otherwise leak a duplicate on the next lease re-claim; a short retry absorbs
+// the common case (brief connection/pool hiccup) without a schema change.
+func (w *Worker) markSent(ctx context.Context, id uuid.UUID, resultID string) error {
+	const attempts = 3
+	var err error
+	for i := 0; i < attempts; i++ {
+		if err = w.repo.MarkSent(ctx, id, resultID); err == nil {
+			return nil
+		}
+		if ctx.Err() != nil {
+			return err
+		}
+		if i < attempts-1 {
+			if !sleepCtx(ctx, time.Duration(i+1)*50*time.Millisecond) {
+				return err
+			}
+		}
+	}
+	return err
+}
+
+// sleepCtx waits for d or until ctx is cancelled. Returns false if cancelled.
+func sleepCtx(ctx context.Context, d time.Duration) bool {
+	t := time.NewTimer(d)
+	defer t.Stop()
+	select {
+	case <-ctx.Done():
+		return false
+	case <-t.C:
+		return true
 	}
 }
 
@@ -248,10 +308,16 @@ func (w *Worker) fail(ctx context.Context, msg domain.SignalMessage, cause error
 		svc1log.SafeParam("nextAttemptAt", next.Format(time.RFC3339)),
 		svc1log.Stacktrace(cause))
 	// MarkFailed's CASE flips status to PERMANENT_FAILED at this attempt count;
-	// mirror the predicate here for the Slack alert. Attempts on msg is the
-	// pre-attempt value, so the row's attempts after MarkFailed == msg.Attempts.
-	if w.notifier != nil && w.notifier.Enabled() && msg.Attempts >= msg.MaxAttempts {
-		w.notifier.NotifyPermanentFailure(ctx, msg, cause)
+	// mirror the predicate here for both the metric and the Slack alert. Attempts
+	// on msg is the pre-attempt value, so the row's attempts after MarkFailed ==
+	// msg.Attempts.
+	if msg.Attempts >= msg.MaxAttempts {
+		w.metrics.IncTerminal(appmetrics.StatusPermanentFailed)
+		if w.notifier != nil && w.notifier.Enabled() {
+			w.notifier.NotifyPermanentFailure(ctx, msg, cause)
+		}
+	} else {
+		w.metrics.IncRetry()
 	}
 }
 

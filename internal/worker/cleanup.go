@@ -15,13 +15,13 @@ import (
 )
 
 // CleanupModule wires the periodic tmp-attachment sweeper. Defined as a
-// separate fx.Module so the worker package can stay focused on the outbox
-// loop; both belong to the same milestone (M6) and the same lifecycle —
+// separate fx.Module so the worker package can stay focused on the outbox loop;
 // fx.Module just keeps the constructors discoverable.
 //
-// M6 honours `cron.cleanupOldFiles.enabled` + `directories` + `fileTtl`. The
-// `schedule` cron expression is reserved for M7 when a real cron parser
-// lands; until then the sweeper runs on a fixed one-minute tick.
+// The sweeper honours `cron.cleanupOldFiles.enabled` + `directories` + `fileTtl`
+// and runs on a fixed one-minute tick. The `schedule` cron expression is not yet
+// honoured — it is parsed and reserved for a future cron-expression scheduler;
+// the default ("0 * * * * *") already matches the fixed cadence.
 var CleanupModule = fx.Module(
 	"worker-cleanup",
 	fx.Provide(NewCleanup),

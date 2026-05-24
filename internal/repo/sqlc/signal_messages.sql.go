@@ -12,6 +12,28 @@ import (
 	domain "github.com/olehmushka/go-signalium/internal/domain"
 )
 
+const backlogStats = `-- name: BacklogStats :one
+SELECT COUNT(*)::int AS depth,
+       COALESCE(EXTRACT(EPOCH FROM (now() - MIN(created_at)))::bigint, 0) AS oldest_age_seconds
+  FROM signalium.signal_messages
+ WHERE deleted_at IS NULL
+   AND status IN ('PENDING', 'FAILED')
+`
+
+type BacklogStatsRow struct {
+	Depth            int32
+	OldestAgeSeconds interface{}
+}
+
+// Depth and age of the work still awaiting delivery. PENDING and FAILED are both
+// "scheduled" (FAILED rows carry a future next_attempt_at), so both count.
+func (q *Queries) BacklogStats(ctx context.Context) (*BacklogStatsRow, error) {
+	row := q.db.QueryRow(ctx, backlogStats)
+	var i BacklogStatsRow
+	err := row.Scan(&i.Depth, &i.OldestAgeSeconds)
+	return &i, err
+}
+
 const claimPending = `-- name: ClaimPending :one
 WITH claimed AS (
   SELECT signal_message_id
@@ -19,6 +41,7 @@ WITH claimed AS (
    WHERE deleted_at IS NULL
      AND (status = 'PENDING' OR (status = 'SENDING' AND next_attempt_at < now()))
      AND next_attempt_at <= now()
+     AND (timeout_at IS NULL OR timeout_at > now())
    ORDER BY next_attempt_at
    FOR UPDATE SKIP LOCKED
    LIMIT 1
@@ -385,6 +408,27 @@ type MarkSentParams struct {
 func (q *Queries) MarkSent(ctx context.Context, arg MarkSentParams) error {
 	_, err := q.db.Exec(ctx, markSent, arg.ResultID, arg.ID)
 	return err
+}
+
+const markTimedOut = `-- name: MarkTimedOut :execrows
+UPDATE signalium.signal_messages
+   SET status      = 'TIMED_OUT',
+       modified_at = now()
+ WHERE deleted_at IS NULL
+   AND status IN ('PENDING', 'SENDING', 'FAILED')
+   AND timeout_at IS NOT NULL
+   AND timeout_at <= now()
+`
+
+// Transition every overdue, not-yet-terminal row to TIMED_OUT in one statement.
+// A row is overdue when its caller-supplied timeout_at has passed; SENT and the
+// failed-terminal states are left untouched. Returns the number of rows flipped.
+func (q *Queries) MarkTimedOut(ctx context.Context) (int64, error) {
+	result, err := q.db.Exec(ctx, markTimedOut)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const resend = `-- name: Resend :exec

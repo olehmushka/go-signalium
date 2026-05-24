@@ -14,6 +14,9 @@ Every architectural-level decision lives here as a numbered, immutable record. A
 | [0006](./0006-single-recipient-or-group-per-message.md) | One recipient OR one group per message | Accepted |
 | [0007](./0007-atlas-for-migrations.md) | Atlas (ariga.io) for database migrations | Accepted |
 | [0008](./0008-conjure-bypass-for-multipart.md) | Bypass Conjure for the multipart upload endpoint | Accepted |
+| [0009](./0009-observability-metrics.md) | Application metrics on the witchcraft registry | Accepted |
+| [0010](./0010-timeout-reaper.md) | Timeout enforcement via a reaper cron + claim exclusion | Accepted |
+| [0011](./0011-exactly-once-send.md) | Send semantics: at-least-once + bounded-retry mitigation | Accepted |
 
 ## When to write a new ADR
 

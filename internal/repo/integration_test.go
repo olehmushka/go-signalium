@@ -47,7 +47,8 @@ func setupDB(tb testing.TB) *pgxpool.Pool {
 	tb.Helper()
 	ctx := context.Background()
 
-	ctr, err := postgres.Run(ctx, containerImage,
+	ctr, err := postgres.Run(
+		ctx, containerImage,
 		postgres.WithDatabase("signalium_test"),
 		postgres.WithUsername("test"),
 		postgres.WithPassword("test"),
@@ -401,6 +402,124 @@ func TestMessages_StatsCounts(t *testing.T) {
 	}
 	assert.Equal(t, 1, got[domain.StatusPending])
 	assert.Equal(t, 1, got[domain.StatusSent])
+}
+
+func timePtr(t time.Time) *time.Time { return &t }
+
+func TestMessages_MarkTimedOut_OnlyOverdueNonTerminal(t *testing.T) {
+	pool := setupDB(t)
+	r := newMessages(t, pool)
+	ctx := t.Context()
+
+	// A SENT row whose deadline will pass: claim + mark it sent while the
+	// deadline is still in the future, so the claim does not skip it. The status
+	// filter — not the deadline — must keep MarkTimedOut from touching it.
+	sentP := newInsertParams("ext-sent", "+380111111111")
+	sentP.TimeoutAt = timePtr(time.Now().UTC().Add(250 * time.Millisecond))
+	sentRow, err := r.Insert(ctx, sentP)
+	require.NoError(t, err)
+	claimed, err := r.ClaimPending(ctx, 30*time.Second)
+	require.NoError(t, err)
+	require.Equal(t, sentRow.ID, claimed.ID)
+	require.NoError(t, r.MarkSent(ctx, sentRow.ID, "1700000001"))
+
+	// A FAILED row whose deadline will pass — must flip to TIMED_OUT.
+	failP := newInsertParams("ext-failed", "+380111111111")
+	failP.TimeoutAt = timePtr(time.Now().UTC().Add(250 * time.Millisecond))
+	failRow, err := r.Insert(ctx, failP)
+	require.NoError(t, err)
+	_, err = r.ClaimPending(ctx, 30*time.Second) // only claimable row now
+	require.NoError(t, err)
+	require.NoError(t, r.MarkFailed(ctx, failRow.ID, "boom", time.Now().UTC().Add(time.Hour)))
+
+	// A PENDING row already past its deadline — must flip to TIMED_OUT.
+	pastP := newInsertParams("ext-past", "+380111111111")
+	pastP.TimeoutAt = timePtr(time.Now().UTC().Add(-time.Hour))
+	pastRow, err := r.Insert(ctx, pastP)
+	require.NoError(t, err)
+
+	// A PENDING row with a future deadline — must be left alone.
+	futureP := newInsertParams("ext-future", "+380111111111")
+	futureP.TimeoutAt = timePtr(time.Now().UTC().Add(time.Hour))
+	futureRow, err := r.Insert(ctx, futureP)
+	require.NoError(t, err)
+
+	// A PENDING row with no deadline — must be left alone.
+	noneRow, err := r.Insert(ctx, newInsertParams("ext-none", "+380111111111"))
+	require.NoError(t, err)
+
+	// Let the two near-future deadlines fall into the past.
+	time.Sleep(350 * time.Millisecond)
+
+	n, err := r.MarkTimedOut(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, int64(2), n, "only the overdue PENDING + FAILED rows should flip")
+
+	assertStatus := func(id uuid.UUID, want domain.SignalMessageStatus) {
+		got, err := r.GetByID(ctx, id)
+		require.NoError(t, err)
+		assert.Equal(t, want, got.Status)
+	}
+	assertStatus(pastRow.ID, domain.StatusTimedOut)
+	assertStatus(failRow.ID, domain.StatusTimedOut)
+	assertStatus(sentRow.ID, domain.StatusSent) // terminal: excluded despite past deadline
+	assertStatus(futureRow.ID, domain.StatusPending)
+	assertStatus(noneRow.ID, domain.StatusPending)
+}
+
+func TestMessages_ClaimPending_SkipsOverdue(t *testing.T) {
+	pool := setupDB(t)
+	r := newMessages(t, pool)
+	ctx := t.Context()
+
+	// A PENDING row already past its deadline must be invisible to the claim —
+	// the reaper terminalises it instead of the worker wasting an attempt.
+	overdue := newInsertParams("ext-overdue", "+380111111111")
+	overdue.TimeoutAt = timePtr(time.Now().UTC().Add(-time.Hour))
+	_, err := r.Insert(ctx, overdue)
+	require.NoError(t, err)
+
+	_, err = r.ClaimPending(ctx, 30*time.Second)
+	require.ErrorIs(t, err, domain.ErrNotFound, "overdue row must not be claimable")
+
+	// A PENDING row with a future deadline is still claimable.
+	live := newInsertParams("ext-live", "+380222222222")
+	live.TimeoutAt = timePtr(time.Now().UTC().Add(time.Hour))
+	liveRow, err := r.Insert(ctx, live)
+	require.NoError(t, err)
+
+	claimed, err := r.ClaimPending(ctx, 30*time.Second)
+	require.NoError(t, err)
+	assert.Equal(t, liveRow.ID, claimed.ID)
+}
+
+func TestMessages_BacklogStats(t *testing.T) {
+	pool := setupDB(t)
+	r := newMessages(t, pool)
+	ctx := t.Context()
+
+	depth, oldest, err := r.BacklogStats(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, 0, depth, "empty table has no backlog")
+	assert.Equal(t, time.Duration(0), oldest)
+
+	// Drive one row to SENT (excluded from backlog), leave two PENDING.
+	sent, err := r.Insert(ctx, newInsertParams("ext-bk-sent", "+380111111111"))
+	require.NoError(t, err)
+	claimed, err := r.ClaimPending(ctx, 30*time.Second)
+	require.NoError(t, err)
+	require.Equal(t, sent.ID, claimed.ID)
+	require.NoError(t, r.MarkSent(ctx, sent.ID, "1700000001"))
+
+	_, err = r.Insert(ctx, newInsertParams("ext-bk-1", "+380222222222"))
+	require.NoError(t, err)
+	_, err = r.Insert(ctx, newInsertParams("ext-bk-2", "+380333333333"))
+	require.NoError(t, err)
+
+	depth, oldest, err = r.BacklogStats(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, 2, depth, "SENT row must not count toward backlog")
+	assert.GreaterOrEqual(t, oldest, time.Duration(0))
 }
 
 // ---- inbound_signal_messages -------------------------------------------

@@ -11,6 +11,7 @@ import (
 	"go.uber.org/fx"
 
 	"github.com/olehmushka/go-signalium/internal/config"
+	appmetrics "github.com/olehmushka/go-signalium/internal/metrics"
 )
 
 // Module wires the TCP client (send) and the HTTP client (read-only proxies
@@ -20,6 +21,7 @@ import (
 var Module = fx.Module(
 	"signal",
 	fx.Provide(
+		func(o *appmetrics.Outbox) Metrics { return o },
 		NewTCPClient,
 		NewHTTPClient,
 	),

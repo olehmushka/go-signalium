@@ -44,15 +44,18 @@ fx owns `main` and process lifecycle. Witchcraft is a fx-managed component, not 
 
 ```
 fx.New(
-    config.Module,        // install.yml + runtime.yml -> typed config
-    db.Module,            // pgx pool, sqlc Queries, advisory-lock migration runner
-    storage.Module,       // MinIO client + bucket bootstrap
-    signal.Module,        // signal-cli TCP + HTTP clients
-    slack.Module,         // optional notifier (refreshable enabled flag)
-    service.Module,       // Send / Resend / Sender / ResultConsumer / InboundListener / Stats / Groups
-    handler.Module,       // conjure handler impls + raw multipart handler
-    server.Module,        // witchcraft.Server provider + lifecycle hook
-    worker.Module,        // outbox worker + cron lifecycle hooks
+    config.Module,            // install.yml + runtime.yml -> typed config
+    metrics.Module,           // signalium.outbox.* emitter on the witchcraft registry
+    db.Module,                // pgx pool, sqlc Queries, advisory-lock migration runner
+    storage.Module,           // MinIO client + bucket bootstrap
+    signal.Module,            // signal-cli TCP + HTTP clients
+    slack.Module,             // optional notifier (refreshable enabled flag)
+    service.Module,           // Send / Resend / Sender / ResultConsumer / InboundListener / Stats / Groups
+    handler.Module,           // conjure handler impls + raw multipart handler
+    server.Module,            // witchcraft.Server provider + lifecycle hook
+    worker.Module,            // outbox worker
+    worker.CleanupModule,     // tmp-attachment sweeper cron
+    worker.TimeoutReaperModule, // TIMED_OUT reaper + backlog gauge sampler cron
 ).Run()
 ```
 
@@ -97,5 +100,12 @@ The system has three classes of failure and each gets its own recovery primitive
 - **Worker crash mid-send** — the row stays `SENDING` with a `next_attempt_at` in the future (the lease); when the lease expires another worker (or the restarted same worker) re-claims via the `(status='SENDING' AND next_attempt_at < now())` arm of the claim query.
 - **Transient signal-cli error** — the worker calls `MarkFailed`, which writes `next_attempt_at = now() + backoff(attempts)` and flips status to `FAILED`. The worker does not auto-re-claim `FAILED` rows; an operator (or the resend endpoint) advances them.
 - **Permanent failure** — when `attempts >= max_attempts`, `MarkFailed`'s CASE sets `PERMANENT_FAILED`. Slack is notified if enabled.
+- **Deadline expiry** — a message with a `timeout_at` that passes is taken out of rotation: `ClaimPending` excludes overdue rows, and the timeout reaper ([`internal/worker/timeout_reaper.go`](../internal/worker/timeout_reaper.go)) flips them to `TIMED_OUT` on its tick. This keeps a stale message from being retried to `PERMANENT_FAILED`. See [decisions/0010](./decisions/0010-timeout-reaper.md).
 
-All three are deterministic and recoverable; the worker never enters a state that needs manual database surgery.
+All four are deterministic and recoverable; the worker never enters a state that needs manual database surgery.
+
+A note on delivery semantics: the send path is **at-least-once**. A `MarkSent` failure after a successful send is retried (bounded), but a crash in that window can re-deliver on the next lease re-claim. Consumers that need exactly-once *effects* dedupe on `idempotencyKey` / `result_id`. The reasoning and the principled fix are in [decisions/0011](./decisions/0011-exactly-once-send.md).
+
+## Observability
+
+Every background component emits a `signalium.outbox.*` metric family onto the registry witchcraft already drains to `metric.1` logs — send latency, claim latency, terminal-status and retry counters, backlog depth/age gauges, and dropped-inbound-event counts. There is no separate scrape endpoint: the metrics register on the same process-global registry witchcraft uses. See [`observability.md`](./observability.md) and [decisions/0009](./decisions/0009-observability-metrics.md).

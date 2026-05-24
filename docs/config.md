@@ -79,10 +79,17 @@ worker:
 cron:
   cleanupOldFiles:
     enabled:          true
-    schedule:         "0 * * * * *"      # hourly
+    schedule:         "0 * * * * *"      # advisory; the sweeper runs on a fixed 1-minute tick
     directories:      ["./tmp"]
     fileTtl:          "10m"
+  timeoutReaper:
+    enabled:          true               # flip overdue (timeout_at <= now) non-terminal rows to TIMED_OUT
+    schedule:         "0 * * * * *"      # advisory; the reaper runs on a fixed 1-minute tick
 ```
+
+> The `schedule` fields are parsed but not yet honoured — both cron jobs run on a
+> fixed one-minute tick. The default expression matches that cadence. See
+> [`worker.md`](./worker.md) and [decisions/0010](./decisions/0010-timeout-reaper.md).
 
 ## `var/conf/runtime.yml`
 

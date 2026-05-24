@@ -12,6 +12,18 @@ A Go service for sending outbound [Signal](https://signal.org/) messages over HT
 
 ---
 
+## What this demonstrates
+
+A small but production-shaped Go service, built on Palantir's open-source stack, that exercises the patterns that matter for reliable backend systems:
+
+- **Durable async delivery via the outbox pattern** — `POST` persists a `PENDING` row and returns `202`; a background worker drains it. Claiming uses `FOR UPDATE SKIP LOCKED` with a per-row **lease**, exponential backoff + jitter, and a complete, auto-enforced state machine (`PENDING → SENDING → SENT | FAILED | PERMANENT_FAILED | TIMED_OUT`).
+- **Honest distributed-systems reasoning** — at-least-once send semantics, the duplicate-send window and how it's bounded, and crash/partition recovery are all reasoned through in ADRs ([0011](./docs/decisions/0011-exactly-once-send.md)), not hand-waved.
+- **Operability built in** — a `signalium.outbox.*` metric family (send latency, backlog depth/age, terminal-status rates) on witchcraft's registry, an automatic timeout reaper, and structured `werror`/`wlog` logging throughout. See [`docs/observability.md`](./docs/observability.md).
+- **Mastery of the Palantir Go stack** — witchcraft-go-server, Conjure IDL, `wlog`/`werror`, fx owning the lifecycle, with the framework inversion documented in [ADR 0005](./docs/decisions/0005-fx-wrapping-witchcraft.md).
+- **A real engineering bar** — typed sqlc query layer, Atlas migrations, hermetic unit + testcontainers integration + fuzz tests run with `-race`, strict `golangci-lint`, CodeQL/govulncheck, and signed releases with SBOMs.
+
+Every non-trivial decision has an [ADR](./docs/decisions); start at [`docs/architecture.md`](./docs/architecture.md).
+
 ## How a message flows
 
 ```mermaid
@@ -53,6 +65,8 @@ sequenceDiagram
 - **Outbox out.** A goroutine claims `PENDING` rows with `FOR UPDATE SKIP LOCKED`, downloads attachments to the `signal-cli` daemon's local disk, issues a JSON-RPC `send`, and marks the row `SENT` (or schedules a retry with exponential backoff + jitter).
 - **Polling for status.** Callers loop `GET /api/v1/signal-messages/{id}` until `status ∈ {SENT, PERMANENT_FAILED, TIMED_OUT}`. No webhooks, no callbacks, no message broker.
 - **Idempotency.** Sends carrying an `idempotencyKey` short-circuit to the prior message id on retry.
+- **Deadlines.** A message with `timeoutSeconds` is excluded from the claim once overdue and reaped to `TIMED_OUT`, instead of being retried to `PERMANENT_FAILED`.
+- **Metrics.** A `signalium.outbox.*` family (send/claim latency, backlog depth/age, terminal-status and retry counters) is emitted on witchcraft's registry — no extra scrape endpoint.
 - **Optional inbound capture.** When `signalCli.enableListening=true`, received Signal events are deduplicated and persisted to `signalium.inbound_signal_messages` for downstream consumers.
 - **Optional Slack alerts.** Permanent failures fan out to Slack when configured.
 
@@ -147,7 +161,8 @@ go-signalium/
 | [`docs/persistence.md`](./docs/persistence.md) | Schema, sqlc layout, Atlas migrations, `search_path` gotcha. |
 | [`docs/signal-cli.md`](./docs/signal-cli.md) | TCP JSON-RPC + HTTP integration, reconnect, event demux. |
 | [`docs/attachments.md`](./docs/attachments.md) | Multipart parsing, MinIO bucket layout, TTL cleanup. |
-| [`docs/worker.md`](./docs/worker.md) | Outbox semantics, lease, backoff, claim query. |
+| [`docs/worker.md`](./docs/worker.md) | Outbox semantics, lease, backoff, claim query, timeout reaper. |
+| [`docs/observability.md`](./docs/observability.md) | The `signalium.outbox.*` metric catalogue, tags, and how to read them. |
 | [`docs/inbound-listening.md`](./docs/inbound-listening.md) | How received Signal messages are captured. |
 | [`docs/config.md`](./docs/config.md) | Every install + runtime knob. |
 | [`docs/style.md`](./docs/style.md) | Palantir Go conventions encoded as rules; `.golangci.yml` rationale. |

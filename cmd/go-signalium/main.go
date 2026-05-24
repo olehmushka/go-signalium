@@ -20,6 +20,7 @@ import (
 	"github.com/olehmushka/go-signalium/internal/config"
 	"github.com/olehmushka/go-signalium/internal/db"
 	"github.com/olehmushka/go-signalium/internal/handler"
+	appmetrics "github.com/olehmushka/go-signalium/internal/metrics"
 	"github.com/olehmushka/go-signalium/internal/repo"
 	"github.com/olehmushka/go-signalium/internal/server"
 	"github.com/olehmushka/go-signalium/internal/service"
@@ -40,6 +41,7 @@ func main() {
 			fx.Annotate("var/conf/runtime.yml", fx.ResultTags(`name:"runtimeConfigPath"`)),
 		),
 		config.Module,
+		appmetrics.Module,
 		db.Module,
 		repo.Module,
 		storage.Module,
@@ -48,6 +50,7 @@ func main() {
 		handler.Module,
 		worker.Module,
 		worker.CleanupModule,
+		worker.TimeoutReaperModule,
 		server.Module,
 		fx.Invoke(registerHello),
 	).Run()

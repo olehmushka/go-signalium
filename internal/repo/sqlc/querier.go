@@ -11,6 +11,9 @@ import (
 )
 
 type Querier interface {
+	// Depth and age of the work still awaiting delivery. PENDING and FAILED are both
+	// "scheduled" (FAILED rows carry a future next_attempt_at), so both count.
+	BacklogStats(ctx context.Context) (*BacklogStatsRow, error)
 	ClaimPending(ctx context.Context, leaseDuration pgtype.Interval) (*SignaliumSignalMessage, error)
 	Count(ctx context.Context, arg CountParams) (int32, error)
 	GetByExternalID(ctx context.Context, externalID string) (*SignaliumSignalMessage, error)
@@ -21,6 +24,10 @@ type Querier interface {
 	List(ctx context.Context, arg ListParams) ([]*SignaliumSignalMessage, error)
 	MarkFailed(ctx context.Context, arg MarkFailedParams) error
 	MarkSent(ctx context.Context, arg MarkSentParams) error
+	// Transition every overdue, not-yet-terminal row to TIMED_OUT in one statement.
+	// A row is overdue when its caller-supplied timeout_at has passed; SENT and the
+	// failed-terminal states are left untouched. Returns the number of rows flipped.
+	MarkTimedOut(ctx context.Context) (int64, error)
 	Resend(ctx context.Context, signalMessageID pgtype.UUID) error
 	StatsCounts(ctx context.Context) ([]*StatsCountsRow, error)
 	StatsPerDay(ctx context.Context) ([]*StatsPerDayRow, error)

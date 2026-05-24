@@ -102,18 +102,33 @@ Permanent failure triggers a Slack notification when enabled. Transient failures
 
 ## TIMED_OUT
 
-If `timeout_at` is set on the row and `now() > timeout_at`, the row is marked `TIMED_OUT` regardless of attempt count. This handles "the message is no longer fresh enough to be useful" scenarios.
+If `timeout_at` is set on the row and `now() >= timeout_at`, the row is marked
+`TIMED_OUT` regardless of attempt count. This handles "the message is no longer
+fresh enough to be useful" scenarios.
 
-The timeout sweep is a separate query, run on the same ticker as `ClaimPending`:
+Enforcement has two halves:
 
-```sql
-UPDATE signalium.signal_messages
-   SET status = 'TIMED_OUT', modified_at = now()
- WHERE deleted_at IS NULL
-   AND status IN ('PENDING', 'FAILED')
-   AND timeout_at IS NOT NULL
-   AND timeout_at < now();
-```
+1. **The claim excludes overdue rows.** `ClaimPending` carries
+   `AND (timeout_at IS NULL OR timeout_at > now())`, so the worker never wastes a
+   send attempt on a message whose deadline has already passed.
+2. **A dedicated reaper terminalises them.** [`internal/worker/timeout_reaper.go`](../internal/worker/timeout_reaper.go)
+   is a fx-managed cron (its own `fx.Module`, mirroring the tmp-cleanup job) that
+   runs on a fixed one-minute tick and once on boot:
+
+   ```sql
+   -- name: MarkTimedOut :execrows
+   UPDATE signalium.signal_messages
+      SET status = 'TIMED_OUT', modified_at = now()
+    WHERE deleted_at IS NULL
+      AND status IN ('PENDING', 'SENDING', 'FAILED')
+      AND timeout_at IS NOT NULL
+      AND timeout_at <= now();
+   ```
+
+   `SENDING` is included so a message whose deadline passes while it is in flight
+   is terminalised on the next sweep rather than re-claimed after its lease
+   expires. The reaper is gated by `cron.timeoutReaper.enabled` and also samples
+   the backlog gauges (see [Observability](#observability)).
 
 ## Cooperation with witchcraft shutdown
 
@@ -139,3 +154,25 @@ func RegisterLifecycle(lc fx.Lifecycle, w *service.Worker) {
 ## Concurrency
 
 Single-message-at-a-time per worker by default — `ClaimPending` returns one row. To increase throughput, set `worker.concurrency > 1` in install.yml: the worker fans out via a bounded `errgroup.Group` that calls `ClaimPending` and `dispatch` concurrently up to N. Each goroutine has its own claim, so `SKIP LOCKED` keeps them from racing.
+
+## Observability
+
+The worker, the TCP client, and the timeout reaper emit a `signalium.outbox.*`
+metric family onto the registry witchcraft drains to `metric.1` logs — no scrape
+endpoint or extra wiring needed. The full list, tags, and how to read them live in
+[`observability.md`](./observability.md). At a glance:
+
+| Metric | Type | What it tells you |
+|---|---|---|
+| `signalium.outbox.send` | timer (tag `outcome`) | signal-cli send latency, success vs error |
+| `signalium.outbox.claim` | timer | how long claims take — worker saturation |
+| `signalium.outbox.terminal` | counter (tag `status`) | rate of `sent` / `permanent_failed` / `timed_out` |
+| `signalium.outbox.retry` | counter | transient failures rescheduled |
+| `signalium.outbox.backlog.depth` | gauge | rows still awaiting delivery |
+| `signalium.outbox.backlog.oldest_age_seconds` | gauge | age of the oldest undelivered row |
+| `signalium.outbox.inbound.dropped` | counter (tag `method`) | inbound events dropped on a full buffer |
+
+`MarkSent` is wrapped in a short bounded retry: the send has already succeeded at
+signal-cli, so a transient DB blip on the SENT transition would otherwise leak a
+duplicate on the next lease re-claim. The remaining (crash-window) gap and the
+principled fix are recorded in [decisions/0011](./decisions/0011-exactly-once-send.md).

@@ -103,6 +103,7 @@ type WorkerConfig struct {
 // CronConfig maps the `cron:` subtree.
 type CronConfig struct {
 	CleanupOldFiles CleanupOldFilesConfig `yaml:"cleanupOldFiles"`
+	TimeoutReaper   TimeoutReaperConfig   `yaml:"timeoutReaper"`
 }
 
 // CleanupOldFilesConfig configures the tmp-cleanup cron job (M6).
@@ -111,4 +112,13 @@ type CleanupOldFilesConfig struct {
 	Schedule    string        `yaml:"schedule"`
 	Directories []string      `yaml:"directories"`
 	FileTTL     time.Duration `yaml:"fileTtl"`
+}
+
+// TimeoutReaperConfig configures the cron job that flips overdue, not-yet-terminal
+// signal_messages rows (timeout_at <= now) to TIMED_OUT. Schedule is reserved for
+// the cron parser; until then the reaper runs on a fixed one-minute tick, like the
+// tmp-cleanup job.
+type TimeoutReaperConfig struct {
+	Enabled  bool   `yaml:"enabled"`
+	Schedule string `yaml:"schedule"`
 }

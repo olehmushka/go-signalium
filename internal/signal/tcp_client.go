@@ -18,6 +18,13 @@ import (
 	"github.com/olehmushka/go-signalium/internal/config"
 )
 
+// Metrics is the slice of metrics.Outbox the TCP client emits to. Only the
+// dropped-inbound-event counter is needed; kept as a consumer-owned interface
+// so tests can pass a throwaway emitter.
+type Metrics interface {
+	IncInboundDropped(method string)
+}
+
 // Errors surfaced by the TCP client. Service code matches with errors.Is.
 var (
 	// ErrDisconnected is returned by in-flight Send calls when the underlying
@@ -37,8 +44,9 @@ var (
 // is safe (writes serialised via writeMu); responses + asynchronous events are
 // demultiplexed by a single reader goroutine.
 type TCPClient struct {
-	cfg    config.SignalCliTCP
-	logger svc1log.Logger
+	cfg     config.SignalCliTCP
+	logger  svc1log.Logger
+	metrics Metrics
 
 	// runCtx is bound to the fx lifecycle (Start/Close). Once cancelled the
 	// reader/dialer loops exit and Send returns ErrShutdown.
@@ -80,10 +88,11 @@ func (r SendResult) ResultID() string { return strconv.FormatInt(r.Timestamp, 10
 
 // NewTCPClient builds an unstarted TCP client. fx.Lifecycle.OnStart calls
 // Start, which kicks off the dialer + reader goroutines.
-func NewTCPClient(install config.Install, logger svc1log.Logger) *TCPClient {
+func NewTCPClient(install config.Install, logger svc1log.Logger, m Metrics) *TCPClient {
 	return &TCPClient{
 		cfg:      install.SignalCli.TCP,
 		logger:   logger,
+		metrics:  m,
 		pending:  make(map[string]chan rpcResponse),
 		dialOnce: make(chan struct{}),
 		events:   make(chan Event, 64),
@@ -292,7 +301,6 @@ func (c *TCPClient) dialLoop() {
 		maxBackoff  = 30 * time.Second
 	)
 	backoff := baseBackoff
-	first := true
 
 	for {
 		if c.runCtx.Err() != nil {
@@ -312,16 +320,14 @@ func (c *TCPClient) dialLoop() {
 			continue
 		}
 
-		// Success.
+		// Success. dialOnce is freshly armed before every (re)dial — created in
+		// the constructor and re-made on each disconnect below — so closing it
+		// here unblocks the Send callers waiting on this connection generation,
+		// exactly once per cycle.
 		c.mu.Lock()
 		c.conn = conn
 		c.connGen++
-		if first {
-			close(c.dialOnce)
-		}
-		// `first` is reset to true on every disconnect below, so explicitly
-		// setting it to false here is dead — the loop top reads only the
-		// value that was set after the previous iteration's reconnect path.
+		close(c.dialOnce)
 		c.mu.Unlock()
 		backoff = baseBackoff
 		c.logger.Info("signal-cli connected", svc1log.SafeParam("addr", addr))
@@ -339,11 +345,10 @@ func (c *TCPClient) dialLoop() {
 			c.markShutdown()
 			return
 		}
-		// On unexpected disconnect, also re-arm dialOnce so new Send calls
-		// wait for the next successful dial instead of racing through.
+		// On unexpected disconnect, re-arm dialOnce so new Send calls wait for
+		// the next successful dial instead of racing through.
 		c.mu.Lock()
 		c.dialOnce = make(chan struct{})
-		first = true
 		c.mu.Unlock()
 	}
 }
@@ -403,6 +408,7 @@ func (c *TCPClient) dispatchFrame(line []byte) {
 	select {
 	case c.events <- Event{Method: frame.Method, Params: frame.Params}:
 	default:
+		c.metrics.IncInboundDropped(frame.Method)
 		c.logger.Warn("signal-cli: events buffer full, dropping",
 			svc1log.SafeParam("method", frame.Method))
 	}
