@@ -28,7 +28,7 @@ import (
 	"github.com/olehmushka/go-signalium/internal/worker"
 )
 
-const PACKAGE_NAME = "github.com/olehmushka/go-signalium"
+const packageName = "github.com/olehmushka/go-signalium"
 
 func main() {
 	wlog.SetDefaultLoggerProvider(wlogzap.LoggerProvider())
@@ -54,7 +54,7 @@ func main() {
 }
 
 func newBootLogger() svc1log.Logger {
-	return svc1log.New(os.Stdout, wlog.InfoLevel, svc1log.Origin(PACKAGE_NAME))
+	return svc1log.New(os.Stdout, wlog.InfoLevel, svc1log.Origin(packageName))
 }
 
 func registerHello(lc fx.Lifecycle, logger svc1log.Logger) {
@@ -62,7 +62,7 @@ func registerHello(lc fx.Lifecycle, logger svc1log.Logger) {
 		OnStart: func(_ context.Context) error {
 			logger.Info(
 				"starting app",
-				svc1log.SafeParam("module", PACKAGE_NAME),
+				svc1log.SafeParam("module", packageName),
 			)
 			return nil
 		},
