@@ -1,0 +1,51 @@
+name: fuzz
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "internal/handler/**"
+      - "go.mod"
+      - "go.sum"
+      - ".github/workflows/fuzz.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fuzz-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  fuzz-multipart:
+    name: fuzz multipart handler
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Restore fuzz corpus
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/go-build/fuzz
+          key: fuzz-${{ runner.os }}-${{ hashFiles('go.sum') }}
+          restore-keys: |
+            fuzz-${{ runner.os }}-
+
+      - name: Run FuzzMultipart (30s)
+        run: go test -run=^$ -fuzz=FuzzMultipart -fuzztime=30s ./internal/handler/
+
+      - name: Upload crashers (if any)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fuzz-corpus-failures
+          path: |
+            internal/handler/testdata/fuzz/FuzzMultipart/**
+          if-no-files-found: ignore

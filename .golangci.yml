@@ -1,0 +1,114 @@
+version: "2"
+
+run:
+  timeout: 5m
+  go: "1.26"
+  modules-download-mode: readonly
+
+issues:
+  exclude-dirs:
+    - internal/generated
+    - internal/repo/sqlc
+  max-issues-per-linter: 0
+  max-same-issues: 0
+
+linters:
+  default: none
+  enable:
+    - bodyclose
+    - contextcheck
+    - depguard
+    - errcheck
+    - errorlint
+    - exhaustive
+    - gocritic
+    - govet
+    - ineffassign
+    - misspell
+    - noctx
+    - nolintlint
+    - revive
+    - rowserrcheck
+    - sqlclosecheck
+    - staticcheck
+    - testifylint
+    - tparallel
+    - unused
+
+  settings:
+    depguard:
+      rules:
+        main:
+          list-mode: lax
+          files:
+            - "!**/*_test.go"
+          allow:
+            - $gostd
+            - github.com/palantir
+            - github.com/olehmushka/go-signalium
+            - github.com/jackc/pgx/v5
+            - github.com/minio/minio-go/v7
+            - github.com/slack-go/slack
+            - github.com/robfig/cron/v3
+            - go.uber.org/fx
+            - go.uber.org/multierr
+            - go.uber.org/zap
+            - github.com/google/uuid
+            - ariga.io/atlas
+          deny:
+            - pkg: errors
+              desc: "use github.com/palantir/witchcraft-go-error (werror) instead of stdlib errors"
+            - pkg: github.com/pkg/errors
+              desc: "use github.com/palantir/witchcraft-go-error (werror) instead"
+            - pkg: log
+              desc: "use github.com/palantir/witchcraft-go-logging/wlog (svc1log) instead of stdlib log"
+            - pkg: github.com/sirupsen/logrus
+              desc: "use github.com/palantir/witchcraft-go-logging/wlog (svc1log) instead"
+        tests:
+          list-mode: lax
+          files:
+            - "**/*_test.go"
+          allow:
+            - $gostd
+            - github.com/palantir
+            - github.com/olehmushka/go-signalium
+            - github.com/jackc/pgx/v5
+            - github.com/minio/minio-go/v7
+            - github.com/stretchr/testify
+            - github.com/testcontainers/testcontainers-go
+            - go.uber.org/fx
+            - github.com/google/uuid
+          deny:
+            - pkg: github.com/pkg/errors
+              desc: "use github.com/palantir/witchcraft-go-error (werror)"
+
+    errorlint:
+      errorf: true
+      asserts: true
+      comparison: true
+
+    exhaustive:
+      default-signifies-exhaustive: true
+
+    revive:
+      rules:
+        - name: var-naming
+          arguments:
+            - ["ID", "URL", "JSON", "HTTP", "RPC", "TCP", "API", "SQL", "UUID", "URI", "DB", "TLS"]
+        - name: exported
+        - name: package-comments
+        - name: error-strings
+        - name: error-naming
+        - name: error-return
+        - name: receiver-naming
+        - name: unused-parameter
+          disabled: true
+
+    nolintlint:
+      require-explanation: true
+      require-specific: true
+      allow-unused: false
+
+formatters:
+  enable:
+    - gofumpt

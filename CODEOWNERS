@@ -1,0 +1,26 @@
+# CODEOWNERS — auto-requested reviewers for matching paths.
+# Docs: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-security/customizing-your-repository/about-code-owners
+#
+# Each line is a glob followed by one or more @owners. Later lines override
+# earlier ones. The last matching line wins.
+
+# Default — everything not matched below
+*                                @olehmushka
+
+# Architectural decisions and the design docs that interpret them
+/docs/decisions/                 @olehmushka
+/docs/                           @olehmushka
+
+# Public contract — schema, IDL, migrations: any change here is a public-facing
+# change and must be reviewed carefully even if behaviour stays the same
+/conjure/                        @olehmushka
+/migrations/                     @olehmushka
+/internal/repo/queries/          @olehmushka
+
+# CI / release / build configuration
+/.github/                        @olehmushka
+/Makefile                        @olehmushka
+/.golangci.yml                   @olehmushka
+/sqlc.yaml                       @olehmushka
+/atlas.hcl                       @olehmushka
+/deploy/                         @olehmushka

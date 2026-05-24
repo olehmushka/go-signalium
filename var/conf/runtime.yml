@@ -1,0 +1,32 @@
+# Witchcraft runtime config (refreshable; witchcraft watches mtime and pushes
+# changes through palantir/pkg/refreshable to subscribers).
+# Mirrors docs/config.md. See "Refreshable boundary" there for which keys
+# can be live-edited vs. require restart.
+#
+# The base witchcraft fields (logging.level, audit, service-discovery,
+# diagnostics) sit at the top level alongside the service-specific keys.
+
+logging:
+  level: "info"
+
+worker:
+  pollInterval: "1s"
+  maxAttempts: 5
+
+signalCli:
+  enableListening: false
+
+inbound:
+  ignore:
+    typing: true
+    receipt: true
+    syncMessage: true
+    callMessage: true
+
+slack:
+  enabled: false
+  webhookUrl: ""
+  channelIds: []
+  notifyOn:
+    permanentFailure: true
+    attachmentError: true

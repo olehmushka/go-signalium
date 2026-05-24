@@ -1,0 +1,958 @@
+{
+  "version" : 1,
+  "errors" : [ {
+    "errorName" : {
+      "name" : "AttachmentUploadFailed",
+      "package" : "com.olehmushka.signalium.api"
+    },
+    "namespace" : "Signalium",
+    "code" : "CUSTOM_SERVER",
+    "safeArgs" : [ {
+      "fieldName" : "filename",
+      "type" : {
+        "type" : "primitive",
+        "primitive" : "STRING"
+      }
+    } ],
+    "unsafeArgs" : [ ]
+  }, {
+    "errorName" : {
+      "name" : "IdempotencyConflict",
+      "package" : "com.olehmushka.signalium.api"
+    },
+    "namespace" : "Signalium",
+    "code" : "CONFLICT",
+    "safeArgs" : [ {
+      "fieldName" : "idempotencyKey",
+      "type" : {
+        "type" : "primitive",
+        "primitive" : "STRING"
+      }
+    } ],
+    "unsafeArgs" : [ ]
+  }, {
+    "errorName" : {
+      "name" : "InternalServiceError",
+      "package" : "com.olehmushka.signalium.api"
+    },
+    "namespace" : "Signalium",
+    "code" : "INTERNAL",
+    "safeArgs" : [ ],
+    "unsafeArgs" : [ ]
+  }, {
+    "errorName" : {
+      "name" : "InvalidSignalMessage",
+      "package" : "com.olehmushka.signalium.api"
+    },
+    "namespace" : "Signalium",
+    "code" : "INVALID_ARGUMENT",
+    "safeArgs" : [ {
+      "fieldName" : "field",
+      "type" : {
+        "type" : "primitive",
+        "primitive" : "STRING"
+      }
+    }, {
+      "fieldName" : "reason",
+      "type" : {
+        "type" : "primitive",
+        "primitive" : "STRING"
+      }
+    } ],
+    "unsafeArgs" : [ ]
+  }, {
+    "errorName" : {
+      "name" : "SenderMismatch",
+      "package" : "com.olehmushka.signalium.api"
+    },
+    "namespace" : "Signalium",
+    "code" : "CONFLICT",
+    "safeArgs" : [ {
+      "fieldName" : "configured",
+      "type" : {
+        "type" : "primitive",
+        "primitive" : "STRING"
+      }
+    }, {
+      "fieldName" : "requested",
+      "type" : {
+        "type" : "primitive",
+        "primitive" : "STRING"
+      }
+    } ],
+    "unsafeArgs" : [ ]
+  }, {
+    "errorName" : {
+      "name" : "SignalCliUnavailable",
+      "package" : "com.olehmushka.signalium.api"
+    },
+    "namespace" : "Signalium",
+    "code" : "CUSTOM_SERVER",
+    "safeArgs" : [ {
+      "fieldName" : "host",
+      "type" : {
+        "type" : "primitive",
+        "primitive" : "STRING"
+      }
+    }, {
+      "fieldName" : "port",
+      "type" : {
+        "type" : "primitive",
+        "primitive" : "INTEGER"
+      }
+    } ],
+    "unsafeArgs" : [ ]
+  }, {
+    "errorName" : {
+      "name" : "SignalMessageNotFound",
+      "package" : "com.olehmushka.signalium.api"
+    },
+    "namespace" : "Signalium",
+    "code" : "NOT_FOUND",
+    "safeArgs" : [ {
+      "fieldName" : "id",
+      "type" : {
+        "type" : "primitive",
+        "primitive" : "STRING"
+      }
+    } ],
+    "unsafeArgs" : [ ]
+  } ],
+  "types" : [ {
+    "type" : "object",
+    "object" : {
+      "typeName" : {
+        "name" : "Attachment",
+        "package" : "com.olehmushka.signalium.api"
+      },
+      "fields" : [ {
+        "fieldName" : "bucket",
+        "type" : {
+          "type" : "primitive",
+          "primitive" : "STRING"
+        }
+      }, {
+        "fieldName" : "filename",
+        "type" : {
+          "type" : "primitive",
+          "primitive" : "STRING"
+        }
+      }, {
+        "fieldName" : "mimeType",
+        "type" : {
+          "type" : "optional",
+          "optional" : {
+            "itemType" : {
+              "type" : "primitive",
+              "primitive" : "STRING"
+            }
+          }
+        }
+      }, {
+        "fieldName" : "size",
+        "type" : {
+          "type" : "optional",
+          "optional" : {
+            "itemType" : {
+              "type" : "primitive",
+              "primitive" : "SAFELONG"
+            }
+          }
+        }
+      } ]
+    }
+  }, {
+    "type" : "object",
+    "object" : {
+      "typeName" : {
+        "name" : "CreateSignalMessageRequest",
+        "package" : "com.olehmushka.signalium.api"
+      },
+      "fields" : [ {
+        "fieldName" : "externalId",
+        "type" : {
+          "type" : "primitive",
+          "primitive" : "STRING"
+        }
+      }, {
+        "fieldName" : "idempotencyKey",
+        "type" : {
+          "type" : "optional",
+          "optional" : {
+            "itemType" : {
+              "type" : "primitive",
+              "primitive" : "STRING"
+            }
+          }
+        }
+      }, {
+        "fieldName" : "recipient",
+        "type" : {
+          "type" : "optional",
+          "optional" : {
+            "itemType" : {
+              "type" : "primitive",
+              "primitive" : "STRING"
+            }
+          }
+        }
+      }, {
+        "fieldName" : "groupId",
+        "type" : {
+          "type" : "optional",
+          "optional" : {
+            "itemType" : {
+              "type" : "primitive",
+              "primitive" : "STRING"
+            }
+          }
+        }
+      }, {
+        "fieldName" : "senderPhoneNumber",
+        "type" : {
+          "type" : "optional",
+          "optional" : {
+            "itemType" : {
+              "type" : "primitive",
+              "primitive" : "STRING"
+            }
+          }
+        }
+      }, {
+        "fieldName" : "content",
+        "type" : {
+          "type" : "primitive",
+          "primitive" : "STRING"
+        }
+      }, {
+        "fieldName" : "quoteResultId",
+        "type" : {
+          "type" : "optional",
+          "optional" : {
+            "itemType" : {
+              "type" : "primitive",
+              "primitive" : "STRING"
+            }
+          }
+        }
+      }, {
+        "fieldName" : "timeoutSeconds",
+        "type" : {
+          "type" : "optional",
+          "optional" : {
+            "itemType" : {
+              "type" : "primitive",
+              "primitive" : "INTEGER"
+            }
+          }
+        }
+      }, {
+        "fieldName" : "maxAttempts",
+        "type" : {
+          "type" : "optional",
+          "optional" : {
+            "itemType" : {
+              "type" : "primitive",
+              "primitive" : "INTEGER"
+            }
+          }
+        }
+      } ],
+      "docs" : "JSON metadata part of the multipart upload to POST /api/v1/signal-messages.\nThe multipart handler is registered outside Conjure (decision 0008) but\ndecodes this part into this type for schema discipline.\n"
+    }
+  }, {
+    "type" : "object",
+    "object" : {
+      "typeName" : {
+        "name" : "DayStat",
+        "package" : "com.olehmushka.signalium.api"
+      },
+      "fields" : [ {
+        "fieldName" : "date",
+        "type" : {
+          "type" : "primitive",
+          "primitive" : "STRING"
+        }
+      }, {
+        "fieldName" : "sent",
+        "type" : {
+          "type" : "primitive",
+          "primitive" : "INTEGER"
+        }
+      }, {
+        "fieldName" : "failed",
+        "type" : {
+          "type" : "primitive",
+          "primitive" : "INTEGER"
+        }
+      } ]
+    }
+  }, {
+    "type" : "object",
+    "object" : {
+      "typeName" : {
+        "name" : "InstanceInfo",
+        "package" : "com.olehmushka.signalium.api"
+      },
+      "fields" : [ {
+        "fieldName" : "name",
+        "type" : {
+          "type" : "primitive",
+          "primitive" : "STRING"
+        }
+      }, {
+        "fieldName" : "senderPhoneNumber",
+        "type" : {
+          "type" : "primitive",
+          "primitive" : "STRING"
+        }
+      } ]
+    }
+  }, {
+    "type" : "object",
+    "object" : {
+      "typeName" : {
+        "name" : "SignalGroupInfo",
+        "package" : "com.olehmushka.signalium.api"
+      },
+      "fields" : [ {
+        "fieldName" : "id",
+        "type" : {
+          "type" : "primitive",
+          "primitive" : "STRING"
+        }
+      }, {
+        "fieldName" : "name",
+        "type" : {
+          "type" : "primitive",
+          "primitive" : "STRING"
+        }
+      }, {
+        "fieldName" : "description",
+        "type" : {
+          "type" : "optional",
+          "optional" : {
+            "itemType" : {
+              "type" : "primitive",
+              "primitive" : "STRING"
+            }
+          }
+        }
+      }, {
+        "fieldName" : "members",
+        "type" : {
+          "type" : "optional",
+          "optional" : {
+            "itemType" : {
+              "type" : "list",
+              "list" : {
+                "itemType" : {
+                  "type" : "primitive",
+                  "primitive" : "STRING"
+                }
+              }
+            }
+          }
+        }
+      } ]
+    }
+  }, {
+    "type" : "object",
+    "object" : {
+      "typeName" : {
+        "name" : "SignalMessageAccepted",
+        "package" : "com.olehmushka.signalium.api"
+      },
+      "fields" : [ {
+        "fieldName" : "id",
+        "type" : {
+          "type" : "primitive",
+          "primitive" : "UUID"
+        }
+      } ]
+    }
+  }, {
+    "type" : "object",
+    "object" : {
+      "typeName" : {
+        "name" : "SignalMessageInfo",
+        "package" : "com.olehmushka.signalium.api"
+      },
+      "fields" : [ {
+        "fieldName" : "id",
+        "type" : {
+          "type" : "primitive",
+          "primitive" : "UUID"
+        }
+      }, {
+        "fieldName" : "externalId",
+        "type" : {
+          "type" : "primitive",
+          "primitive" : "STRING"
+        }
+      }, {
+        "fieldName" : "idempotencyKey",
+        "type" : {
+          "type" : "optional",
+          "optional" : {
+            "itemType" : {
+              "type" : "primitive",
+              "primitive" : "STRING"
+            }
+          }
+        }
+      }, {
+        "fieldName" : "recipient",
+        "type" : {
+          "type" : "optional",
+          "optional" : {
+            "itemType" : {
+              "type" : "primitive",
+              "primitive" : "STRING"
+            }
+          }
+        }
+      }, {
+        "fieldName" : "groupId",
+        "type" : {
+          "type" : "optional",
+          "optional" : {
+            "itemType" : {
+              "type" : "primitive",
+              "primitive" : "STRING"
+            }
+          }
+        }
+      }, {
+        "fieldName" : "senderPhoneNumber",
+        "type" : {
+          "type" : "primitive",
+          "primitive" : "STRING"
+        }
+      }, {
+        "fieldName" : "content",
+        "type" : {
+          "type" : "primitive",
+          "primitive" : "STRING"
+        }
+      }, {
+        "fieldName" : "attachments",
+        "type" : {
+          "type" : "list",
+          "list" : {
+            "itemType" : {
+              "type" : "reference",
+              "reference" : {
+                "name" : "Attachment",
+                "package" : "com.olehmushka.signalium.api"
+              }
+            }
+          }
+        }
+      }, {
+        "fieldName" : "attempts",
+        "type" : {
+          "type" : "primitive",
+          "primitive" : "INTEGER"
+        }
+      }, {
+        "fieldName" : "maxAttempts",
+        "type" : {
+          "type" : "primitive",
+          "primitive" : "INTEGER"
+        }
+      }, {
+        "fieldName" : "nextAttemptAt",
+        "type" : {
+          "type" : "primitive",
+          "primitive" : "DATETIME"
+        }
+      }, {
+        "fieldName" : "timeoutAt",
+        "type" : {
+          "type" : "optional",
+          "optional" : {
+            "itemType" : {
+              "type" : "primitive",
+              "primitive" : "DATETIME"
+            }
+          }
+        }
+      }, {
+        "fieldName" : "status",
+        "type" : {
+          "type" : "reference",
+          "reference" : {
+            "name" : "SignalMessageStatus",
+            "package" : "com.olehmushka.signalium.api"
+          }
+        }
+      }, {
+        "fieldName" : "lastError",
+        "type" : {
+          "type" : "optional",
+          "optional" : {
+            "itemType" : {
+              "type" : "primitive",
+              "primitive" : "STRING"
+            }
+          }
+        }
+      }, {
+        "fieldName" : "resultId",
+        "type" : {
+          "type" : "optional",
+          "optional" : {
+            "itemType" : {
+              "type" : "primitive",
+              "primitive" : "STRING"
+            }
+          }
+        }
+      }, {
+        "fieldName" : "quoteResultId",
+        "type" : {
+          "type" : "optional",
+          "optional" : {
+            "itemType" : {
+              "type" : "primitive",
+              "primitive" : "STRING"
+            }
+          }
+        }
+      }, {
+        "fieldName" : "correlationId",
+        "type" : {
+          "type" : "primitive",
+          "primitive" : "STRING"
+        }
+      }, {
+        "fieldName" : "createdAt",
+        "type" : {
+          "type" : "primitive",
+          "primitive" : "DATETIME"
+        }
+      }, {
+        "fieldName" : "modifiedAt",
+        "type" : {
+          "type" : "primitive",
+          "primitive" : "DATETIME"
+        }
+      } ]
+    }
+  }, {
+    "type" : "object",
+    "object" : {
+      "typeName" : {
+        "name" : "SignalMessageList",
+        "package" : "com.olehmushka.signalium.api"
+      },
+      "fields" : [ {
+        "fieldName" : "items",
+        "type" : {
+          "type" : "list",
+          "list" : {
+            "itemType" : {
+              "type" : "reference",
+              "reference" : {
+                "name" : "SignalMessageInfo",
+                "package" : "com.olehmushka.signalium.api"
+              }
+            }
+          }
+        }
+      }, {
+        "fieldName" : "total",
+        "type" : {
+          "type" : "primitive",
+          "primitive" : "INTEGER"
+        }
+      } ]
+    }
+  }, {
+    "type" : "object",
+    "object" : {
+      "typeName" : {
+        "name" : "SignalMessageStats",
+        "package" : "com.olehmushka.signalium.api"
+      },
+      "fields" : [ {
+        "fieldName" : "counts",
+        "type" : {
+          "type" : "map",
+          "map" : {
+            "keyType" : {
+              "type" : "reference",
+              "reference" : {
+                "name" : "SignalMessageStatus",
+                "package" : "com.olehmushka.signalium.api"
+              }
+            },
+            "valueType" : {
+              "type" : "primitive",
+              "primitive" : "INTEGER"
+            }
+          }
+        }
+      }, {
+        "fieldName" : "perDay",
+        "type" : {
+          "type" : "list",
+          "list" : {
+            "itemType" : {
+              "type" : "reference",
+              "reference" : {
+                "name" : "DayStat",
+                "package" : "com.olehmushka.signalium.api"
+              }
+            }
+          }
+        }
+      } ]
+    }
+  }, {
+    "type" : "enum",
+    "enum" : {
+      "typeName" : {
+        "name" : "SignalMessageStatus",
+        "package" : "com.olehmushka.signalium.api"
+      },
+      "values" : [ {
+        "value" : "PENDING"
+      }, {
+        "value" : "SENDING"
+      }, {
+        "value" : "SENT"
+      }, {
+        "value" : "FAILED"
+      }, {
+        "value" : "PERMANENT_FAILED"
+      }, {
+        "value" : "TIMED_OUT"
+      } ]
+    }
+  }, {
+    "type" : "object",
+    "object" : {
+      "typeName" : {
+        "name" : "UpdateSignalMessageRequest",
+        "package" : "com.olehmushka.signalium.api"
+      },
+      "fields" : [ {
+        "fieldName" : "status",
+        "type" : {
+          "type" : "reference",
+          "reference" : {
+            "name" : "SignalMessageStatus",
+            "package" : "com.olehmushka.signalium.api"
+          }
+        }
+      } ]
+    }
+  } ],
+  "services" : [ {
+    "serviceName" : {
+      "name" : "SignalMessagesService",
+      "package" : "com.olehmushka.signalium.api"
+    },
+    "endpoints" : [ {
+      "endpointName" : "getInstanceInfo",
+      "httpMethod" : "GET",
+      "httpPath" : "/api/v1/info",
+      "args" : [ ],
+      "returns" : {
+        "type" : "reference",
+        "reference" : {
+          "name" : "InstanceInfo",
+          "package" : "com.olehmushka.signalium.api"
+        }
+      },
+      "errors" : [ ],
+      "markers" : [ ],
+      "tags" : [ ]
+    }, {
+      "endpointName" : "listGroups",
+      "httpMethod" : "GET",
+      "httpPath" : "/api/v1/groups",
+      "args" : [ ],
+      "returns" : {
+        "type" : "list",
+        "list" : {
+          "itemType" : {
+            "type" : "reference",
+            "reference" : {
+              "name" : "SignalGroupInfo",
+              "package" : "com.olehmushka.signalium.api"
+            }
+          }
+        }
+      },
+      "errors" : [ ],
+      "markers" : [ ],
+      "tags" : [ ]
+    }, {
+      "endpointName" : "listSignalMessages",
+      "httpMethod" : "GET",
+      "httpPath" : "/api/v1/signal-messages",
+      "args" : [ {
+        "argName" : "q",
+        "type" : {
+          "type" : "optional",
+          "optional" : {
+            "itemType" : {
+              "type" : "primitive",
+              "primitive" : "STRING"
+            }
+          }
+        },
+        "paramType" : {
+          "type" : "query",
+          "query" : {
+            "paramId" : "q"
+          }
+        },
+        "markers" : [ ],
+        "tags" : [ ]
+      }, {
+        "argName" : "limit",
+        "type" : {
+          "type" : "optional",
+          "optional" : {
+            "itemType" : {
+              "type" : "primitive",
+              "primitive" : "INTEGER"
+            }
+          }
+        },
+        "paramType" : {
+          "type" : "query",
+          "query" : {
+            "paramId" : "limit"
+          }
+        },
+        "markers" : [ ],
+        "tags" : [ ]
+      }, {
+        "argName" : "offset",
+        "type" : {
+          "type" : "optional",
+          "optional" : {
+            "itemType" : {
+              "type" : "primitive",
+              "primitive" : "INTEGER"
+            }
+          }
+        },
+        "paramType" : {
+          "type" : "query",
+          "query" : {
+            "paramId" : "offset"
+          }
+        },
+        "markers" : [ ],
+        "tags" : [ ]
+      }, {
+        "argName" : "createdAtFrom",
+        "type" : {
+          "type" : "optional",
+          "optional" : {
+            "itemType" : {
+              "type" : "primitive",
+              "primitive" : "DATETIME"
+            }
+          }
+        },
+        "paramType" : {
+          "type" : "query",
+          "query" : {
+            "paramId" : "createdAtFrom"
+          }
+        },
+        "markers" : [ ],
+        "tags" : [ ]
+      }, {
+        "argName" : "createdAtTo",
+        "type" : {
+          "type" : "optional",
+          "optional" : {
+            "itemType" : {
+              "type" : "primitive",
+              "primitive" : "DATETIME"
+            }
+          }
+        },
+        "paramType" : {
+          "type" : "query",
+          "query" : {
+            "paramId" : "createdAtTo"
+          }
+        },
+        "markers" : [ ],
+        "tags" : [ ]
+      }, {
+        "argName" : "status",
+        "type" : {
+          "type" : "optional",
+          "optional" : {
+            "itemType" : {
+              "type" : "reference",
+              "reference" : {
+                "name" : "SignalMessageStatus",
+                "package" : "com.olehmushka.signalium.api"
+              }
+            }
+          }
+        },
+        "paramType" : {
+          "type" : "query",
+          "query" : {
+            "paramId" : "status"
+          }
+        },
+        "markers" : [ ],
+        "tags" : [ ]
+      }, {
+        "argName" : "attempts",
+        "type" : {
+          "type" : "optional",
+          "optional" : {
+            "itemType" : {
+              "type" : "primitive",
+              "primitive" : "INTEGER"
+            }
+          }
+        },
+        "paramType" : {
+          "type" : "query",
+          "query" : {
+            "paramId" : "attempts"
+          }
+        },
+        "markers" : [ ],
+        "tags" : [ ]
+      } ],
+      "returns" : {
+        "type" : "reference",
+        "reference" : {
+          "name" : "SignalMessageList",
+          "package" : "com.olehmushka.signalium.api"
+        }
+      },
+      "errors" : [ ],
+      "markers" : [ ],
+      "tags" : [ ]
+    }, {
+      "endpointName" : "getSignalMessage",
+      "httpMethod" : "GET",
+      "httpPath" : "/api/v1/signal-messages/{id}",
+      "args" : [ {
+        "argName" : "id",
+        "type" : {
+          "type" : "primitive",
+          "primitive" : "UUID"
+        },
+        "paramType" : {
+          "type" : "path",
+          "path" : { }
+        },
+        "markers" : [ ],
+        "tags" : [ ]
+      } ],
+      "returns" : {
+        "type" : "reference",
+        "reference" : {
+          "name" : "SignalMessageInfo",
+          "package" : "com.olehmushka.signalium.api"
+        }
+      },
+      "errors" : [ ],
+      "markers" : [ ],
+      "tags" : [ ]
+    }, {
+      "endpointName" : "updateSignalMessage",
+      "httpMethod" : "PUT",
+      "httpPath" : "/api/v1/signal-messages/{id}",
+      "args" : [ {
+        "argName" : "id",
+        "type" : {
+          "type" : "primitive",
+          "primitive" : "UUID"
+        },
+        "paramType" : {
+          "type" : "path",
+          "path" : { }
+        },
+        "markers" : [ ],
+        "tags" : [ ]
+      }, {
+        "argName" : "body",
+        "type" : {
+          "type" : "reference",
+          "reference" : {
+            "name" : "UpdateSignalMessageRequest",
+            "package" : "com.olehmushka.signalium.api"
+          }
+        },
+        "paramType" : {
+          "type" : "body",
+          "body" : { }
+        },
+        "markers" : [ ],
+        "tags" : [ ]
+      } ],
+      "returns" : {
+        "type" : "reference",
+        "reference" : {
+          "name" : "SignalMessageInfo",
+          "package" : "com.olehmushka.signalium.api"
+        }
+      },
+      "errors" : [ ],
+      "markers" : [ ],
+      "tags" : [ ]
+    }, {
+      "endpointName" : "resendSignalMessage",
+      "httpMethod" : "POST",
+      "httpPath" : "/api/v1/signal-messages/{id}/resend",
+      "args" : [ {
+        "argName" : "id",
+        "type" : {
+          "type" : "primitive",
+          "primitive" : "UUID"
+        },
+        "paramType" : {
+          "type" : "path",
+          "path" : { }
+        },
+        "markers" : [ ],
+        "tags" : [ ]
+      } ],
+      "returns" : {
+        "type" : "reference",
+        "reference" : {
+          "name" : "SignalMessageInfo",
+          "package" : "com.olehmushka.signalium.api"
+        }
+      },
+      "errors" : [ ],
+      "markers" : [ ],
+      "tags" : [ ]
+    }, {
+      "endpointName" : "getSignalMessagesStats",
+      "httpMethod" : "GET",
+      "httpPath" : "/api/v1/signal-messages-stats",
+      "args" : [ ],
+      "returns" : {
+        "type" : "reference",
+        "reference" : {
+          "name" : "SignalMessageStats",
+          "package" : "com.olehmushka.signalium.api"
+        }
+      },
+      "errors" : [ ],
+      "markers" : [ ],
+      "tags" : [ ]
+    } ]
+  } ],
+  "extensions" : { }
+}

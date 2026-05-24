@@ -1,0 +1,105 @@
+version: 2
+
+project_name: go-signalium
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: go-signalium
+    main: ./cmd/go-signalium
+    binary: go-signalium
+    env:
+      - CGO_ENABLED=0
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w
+    goos:
+      - linux
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+
+archives:
+  - id: default
+    name_template: >-
+      {{ .ProjectName }}_{{ .Version }}_
+      {{- if eq .Os "darwin" }}macOS{{ else }}{{ .Os }}{{ end }}_
+      {{- if eq .Arch "amd64" }}x86_64{{ else }}{{ .Arch }}{{ end }}
+    formats: [tar.gz]
+    files:
+      - LICENSE
+      - README.md
+      - CHANGELOG.md
+      - SECURITY.md
+
+checksum:
+  name_template: "checksums.txt"
+  algorithm: sha256
+
+sboms:
+  - id: archive-sbom
+    artifacts: archive
+    documents:
+      - "${artifact}.sbom.json"
+
+# Keyless cosign signing of the checksums file via Sigstore Fulcio + GitHub OIDC.
+# Verify with:
+#   cosign verify-blob \
+#     --certificate-identity-regexp 'https://github.com/olehmushka/go-signalium/.github/workflows/release.yml@refs/tags/.*' \
+#     --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+#     --signature checksums.txt.sig \
+#     --certificate checksums.txt.pem \
+#     checksums.txt
+signs:
+  - id: cosign-checksums
+    cmd: cosign
+    args:
+      - sign-blob
+      - --yes
+      - --oidc-issuer=https://token.actions.githubusercontent.com
+      - --output-signature=${signature}
+      - --output-certificate=${certificate}
+      - ${artifact}
+    artifacts: checksum
+    signature: ${artifact}.sig
+    certificate: ${artifact}.pem
+
+snapshot:
+  version_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  use: github
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^chore:"
+      - "Merge pull request"
+
+release:
+  draft: false
+  prerelease: auto
+  mode: append
+  name_template: "v{{ .Version }}"
+  footer: |
+    ---
+
+    **Full Changelog**: https://github.com/olehmushka/go-signalium/compare/{{ .PreviousTag }}...{{ .Tag }}
+
+    **Verifying the release**
+
+    Checksums (`checksums.txt`) are signed keylessly via Sigstore. To verify:
+
+    ```bash
+    cosign verify-blob \
+      --certificate-identity-regexp 'https://github.com/olehmushka/go-signalium/.github/workflows/release.yml@refs/tags/.*' \
+      --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+      --signature checksums.txt.sig \
+      --certificate checksums.txt.pem \
+      checksums.txt
+    ```

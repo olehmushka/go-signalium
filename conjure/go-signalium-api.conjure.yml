@@ -1,0 +1,193 @@
+# Conjure IDL — go-signalium HTTP surface
+#
+# Hand-edited; regenerate Go via `make conjure`.
+# Multipart upload (POST /api/v1/signal-messages) is NOT modelled here — see
+# docs/decisions/0008-conjure-bypass-for-multipart.md. The `CreateSignalMessageRequest`
+# type IS modelled below so the JSON metadata part still has an IDL-sourced schema.
+#
+# Endpoints listed in docs/rest-api.md. Errors map 1:1 to the table in that doc
+# (custom-server is used for 5xx variants Conjure does not natively encode).
+
+types:
+  definitions:
+    default-package: com.olehmushka.signalium.api
+    objects:
+      SignalMessageStatus:
+        values:
+          - PENDING
+          - SENDING
+          - SENT
+          - FAILED
+          - PERMANENT_FAILED
+          - TIMED_OUT
+      Attachment:
+        fields:
+          bucket: string
+          filename: string
+          mimeType: optional<string>
+          size: optional<safelong>
+      SignalMessageInfo:
+        fields:
+          id: uuid
+          externalId: string
+          idempotencyKey: optional<string>
+          recipient: optional<string>
+          groupId: optional<string>
+          senderPhoneNumber: string
+          content: string
+          attachments: list<Attachment>
+          attempts: integer
+          maxAttempts: integer
+          nextAttemptAt: datetime
+          timeoutAt: optional<datetime>
+          status: SignalMessageStatus
+          lastError: optional<string>
+          resultId: optional<string>
+          quoteResultId: optional<string>
+          correlationId: string
+          createdAt: datetime
+          modifiedAt: datetime
+      SignalMessageList:
+        fields:
+          items: list<SignalMessageInfo>
+          total: integer
+      SignalMessageAccepted:
+        fields:
+          id: uuid
+      CreateSignalMessageRequest:
+        docs: |
+          JSON metadata part of the multipart upload to POST /api/v1/signal-messages.
+          The multipart handler is registered outside Conjure (decision 0008) but
+          decodes this part into this type for schema discipline.
+        fields:
+          externalId: string
+          idempotencyKey: optional<string>
+          recipient: optional<string>
+          groupId: optional<string>
+          senderPhoneNumber: optional<string>
+          content: string
+          quoteResultId: optional<string>
+          timeoutSeconds: optional<integer>
+          maxAttempts: optional<integer>
+      UpdateSignalMessageRequest:
+        fields:
+          status: SignalMessageStatus
+      DayStat:
+        fields:
+          date: string
+          sent: integer
+          failed: integer
+      SignalMessageStats:
+        fields:
+          counts: map<SignalMessageStatus, integer>
+          perDay: list<DayStat>
+      InstanceInfo:
+        fields:
+          name: string
+          senderPhoneNumber: string
+      SignalGroupInfo:
+        fields:
+          id: string
+          name: string
+          description: optional<string>
+          members: optional<list<string>>
+    errors:
+      IdempotencyConflict:
+        namespace: Signalium
+        code: CONFLICT
+        safe-args:
+          idempotencyKey: string
+      InvalidSignalMessage:
+        namespace: Signalium
+        code: INVALID_ARGUMENT
+        safe-args:
+          field: string
+          reason: string
+      SignalMessageNotFound:
+        namespace: Signalium
+        code: NOT_FOUND
+        safe-args:
+          id: string
+      SenderMismatch:
+        namespace: Signalium
+        code: CONFLICT
+        safe-args:
+          configured: string
+          requested: string
+      AttachmentUploadFailed:
+        namespace: Signalium
+        code: CUSTOM_SERVER
+        safe-args:
+          filename: string
+      SignalCliUnavailable:
+        namespace: Signalium
+        code: CUSTOM_SERVER
+        safe-args:
+          host: string
+          port: integer
+      InternalServiceError:
+        namespace: Signalium
+        code: INTERNAL
+
+services:
+  SignalMessagesService:
+    name: Signal Messages Service
+    package: com.olehmushka.signalium.api
+    base-path: /api/v1
+    endpoints:
+      getInstanceInfo:
+        http: GET /info
+        returns: InstanceInfo
+      listGroups:
+        http: GET /groups
+        returns: list<SignalGroupInfo>
+      listSignalMessages:
+        http: GET /signal-messages
+        args:
+          q:
+            type: optional<string>
+            param-type: query
+          limit:
+            type: optional<integer>
+            param-type: query
+          offset:
+            type: optional<integer>
+            param-type: query
+          createdAtFrom:
+            type: optional<datetime>
+            param-type: query
+          createdAtTo:
+            type: optional<datetime>
+            param-type: query
+          status:
+            type: optional<SignalMessageStatus>
+            param-type: query
+          attempts:
+            type: optional<integer>
+            param-type: query
+        returns: SignalMessageList
+      getSignalMessage:
+        http: GET /signal-messages/{id}
+        args:
+          id: uuid
+        returns: SignalMessageInfo
+      updateSignalMessage:
+        # NOTE: docs/rest-api.md lists this as PATCH; Conjure restricts methods
+        # to GET/POST/PUT/DELETE so PUT is used here. The semantic is the same
+        # (replace the `status` field on the row). Docs updated to match.
+        http: PUT /signal-messages/{id}
+        args:
+          id: uuid
+          body:
+            type: UpdateSignalMessageRequest
+            param-type: body
+        returns: SignalMessageInfo
+      resendSignalMessage:
+        # docs/rest-api.md says PATCH; Conjure has no PATCH so POST is used.
+        http: POST /signal-messages/{id}/resend
+        args:
+          id: uuid
+        returns: SignalMessageInfo
+      getSignalMessagesStats:
+        http: GET /signal-messages-stats
+        returns: SignalMessageStats

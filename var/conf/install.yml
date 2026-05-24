@@ -1,0 +1,67 @@
+# Witchcraft install config (boot-time, restart to change).
+# Mirrors docs/config.md. Validated and parsed by witchcraft via
+# WithInstallConfigType against internal/config.Install.
+#
+# The `server:` block uses kebab-case yaml tags because it embeds
+# witchcraft-go-server/v3's config.Install.Server; the rest of the file uses
+# camelCase to match the service-specific subsections in internal/config.
+
+product-name: go-signalium
+product-version: 0.0.0-dev
+
+server:
+  address: ""
+  port: 8083
+  management-port: 8084
+  context-path: "/"
+  cert-file: ""
+  key-file: ""
+  client-ca-files: []
+
+database:
+  url: "postgres://myuser:mypassword@localhost:5432/mydb?sslmode=disable"
+  pool:
+    maxConns: 10
+    minConns: 2
+    maxConnLifetime: "1h"
+    connectTimeout: "5s"
+  enableMigrationsAutoRun: true
+  migrationsAdvisoryLockKey: 4242
+
+minio:
+  endpoint: "localhost:9000"
+  accessKey: "minioadmin"
+  secretKey: "minioadmin"
+  region: "us-east-1"
+  bucket: "signalium-attachments"
+  useSSL: false
+  localTmpDir: "./tmp"
+
+signalCli:
+  tcp:
+    host: "127.0.0.1"
+    port: 7610
+    waitResultTimeout: "10s"
+    ignoreResults: false
+  http:
+    host: "127.0.0.1"
+    port: 7611
+    timeout: "10s"
+    maxRetries: 5
+  senderPhoneNumber: "+380000000000"
+  enableListening: false
+
+worker:
+  pollInterval: "1s"
+  leaseDuration: "5m"
+  perAttemptTimeout: "60s"
+  concurrency: 1
+  baseBackoff: "5s"
+  maxBackoff: "1h"
+
+cron:
+  cleanupOldFiles:
+    enabled: true
+    schedule: "0 * * * * *"
+    directories: ["./tmp"]
+    fileTtl: "10m"

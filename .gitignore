@@ -1,0 +1,20 @@
+/bin/
+/go-signalium
+/tmp/
+*.test
+*.out
+cover.out
+coverage.*
+.env
+.env.local
+.idea/
+.vscode/
+
+# Runtime artifacts — witchcraft writes these under var/log/ at boot.
+# Never commit; they are operator state, not source.
+/var/log/*
+!/var/log/.gitkeep
+*.log
+
+# goreleaser
+/dist/

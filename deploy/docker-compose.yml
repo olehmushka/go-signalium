@@ -1,0 +1,58 @@
+services:
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    restart: unless-stopped
+    ports:
+      - "9000:9000" # S3 API
+      - "9001:9001" # Web Console
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+
+  postgres:
+    image: postgres:17-alpine
+    container_name: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: mydb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U myuser -d mydb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  signal-cli:
+    build:
+      context: .
+      dockerfile: Dockerfile.signal-cli
+    container_name: signal-cli
+    ports:
+      - "7610:7610" # JSON-RPC
+      - "7611:7611" # HTTP
+    volumes:
+      - signal_cli_data:/var/lib/signal-cli
+      - signal_cli_tmp:/var/lib/signal-cli/tmp
+    healthcheck:
+      test:
+        ["CMD-SHELL", "curl -f http://signal-cli:7611/api/v1/check || exit 1"]
+      interval: 30s
+      timeout: 2s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  minio_data:
+  postgres_data:
+  signal_cli_data:
+  signal_cli_tmp:

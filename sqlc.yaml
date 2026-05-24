@@ -1,0 +1,40 @@
+version: "2"
+
+sql:
+  - engine: postgresql
+    schema: ./migrations
+    queries: ./internal/repo/queries
+    gen:
+      go:
+        package: sqlc
+        out: ./internal/repo/sqlc
+        sql_package: pgx/v5
+        emit_interface: true
+        emit_json_tags: false
+        emit_pointers_for_null_types: true
+        emit_prepared_queries: false
+        emit_methods_with_db_argument: false
+        emit_empty_slices: true
+        emit_exact_table_names: false
+        emit_result_struct_pointers: true
+        query_parameter_limit: 1
+        rename:
+          signal_message_id: ID
+          external_id: ExternalID
+          idempotency_key: IdempotencyKey
+          group_id: GroupID
+          result_id: ResultID
+          quote_result_id: QuoteResultID
+          correlation_id: CorrelationID
+        overrides:
+          # JSONB column -> domain type with Scanner/Valuer (wired in M2).
+          - column: signalium.signal_messages.attachments
+            go_type:
+              import: github.com/olehmushka/go-signalium/internal/domain
+              package: domain
+              type: Attachments
+          - db_type: signalium.signal_message_status
+            go_type:
+              import: github.com/olehmushka/go-signalium/internal/domain
+              package: domain
+              type: SignalMessageStatus

@@ -1,0 +1,18 @@
+FROM registry.gitlab.com/packaging/signal-cli/signal-cli-jre:latest
+
+USER root
+
+RUN apt-get update && apt-get install -y curl && \
+  apt-get install -y --no-install-recommends \
+  qrencode xxd && \
+  rm -rf /var/lib/apt/lists/*
+
+# Create directory for scripts
+RUN mkdir -p /app
+COPY entrypoint_signal_cli.sh /app/entrypoint_signal_cli.sh
+RUN chmod +x /app/entrypoint_signal_cli.sh
+
+# Return to default non-root user for safety
+USER signal-cli
+
+ENTRYPOINT ["/app/entrypoint_signal_cli.sh"]
