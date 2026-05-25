@@ -1,0 +1,79 @@
+# Self-contained stack for the COMBINED go-signalium image (the app AND the
+# signal-cli daemon in one container, supervised by supervisord).
+#
+#   cd deploy && docker compose -f docker-compose.app.yml up --build
+#
+# Deliberately isolated from the dev stack in docker-compose.yml:
+#   * its own compose project (name: below) -> separate network + volumes,
+#   * its own postgres/minio/signal volumes (app_*), so it never reads or
+#     writes the dev server's database or the dev signal-cli account,
+#   * alternate HOST ports (15432/19000/19001/18083/18084), so it does not
+#     collide with the dev stack that publishes 5432/9000/9001/7610 and the
+#     dev app on 8083/8084.
+#
+# Inside this project the service names `postgres` and `minio` match what the
+# container's config expects (SIGNALIUM_DB_URL host + conf/install.yml's
+# minio.endpoint). signal-cli lives inside the go-signalium container, reached
+# over 127.0.0.1:7610/7611, so it needs no service of its own.
+name: go-signalium-app
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: mydb
+    ports:
+      - "15432:5432"
+    volumes:
+      - app_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U myuser -d mydb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  minio:
+    image: minio/minio:latest
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address ":9001"
+    ports:
+      - "19000:9000"
+      - "19001:9001"
+    volumes:
+      - app_minio_data:/data
+
+  go-signalium:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_started
+    environment:
+      # internal/db reads this env var (internal/db/config.go); it overrides the
+      # database.url baked into install.yml.
+      SIGNALIUM_DB_URL: "postgres://myuser:mypassword@postgres:5432/mydb?sslmode=disable"
+    ports:
+      - "18083:8083" # API
+      - "18084:8084" # management / metrics
+    volumes:
+      - app_signal_data:/var/lib/signal-cli
+      - app_signal_tmp:/var/lib/signal-cli/tmp
+      # MinIO endpoint -> the `minio` service; signal-cli host stays 127.0.0.1.
+      - ./conf/install.yml:/app/var/conf/install.yml:ro
+
+volumes:
+  app_postgres_data:
+  app_minio_data:
+  app_signal_data:
+  app_signal_tmp:

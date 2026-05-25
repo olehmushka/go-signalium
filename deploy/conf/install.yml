@@ -1,0 +1,71 @@
+# Compose-tuned install config, mounted read-only over /app/var/conf/install.yml
+# in the go-signalium container. It differs from the dev var/conf/install.yml in
+# exactly two places: the MinIO endpoint and the DB URL point at sibling compose
+# services instead of localhost. signal-cli runs inside the same container, so
+# its host stays 127.0.0.1.
+#
+# NOTE: database.url here is cosmetic — internal/db reads SIGNALIUM_DB_URL from
+# the environment (set in docker-compose.yml), which takes precedence.
+
+product-name: go-signalium
+product-version: 0.0.0-dev
+
+server:
+  address: ""
+  port: 8083
+  management-port: 8084
+  context-path: "/"
+  cert-file: ""
+  key-file: ""
+  client-ca-files: []
+
+database:
+  url: "postgres://myuser:mypassword@postgres:5432/mydb?sslmode=disable"
+  pool:
+    maxConns: 10
+    minConns: 2
+    maxConnLifetime: "1h"
+    connectTimeout: "5s"
+  enableMigrationsAutoRun: true
+  migrationsAdvisoryLockKey: 4242
+
+minio:
+  endpoint: "minio:9000"
+  accessKey: "minioadmin"
+  secretKey: "minioadmin"
+  region: "us-east-1"
+  bucket: "signalium-attachments"
+  useSSL: false
+  localTmpDir: "./tmp"
+
+signalCli:
+  tcp:
+    host: "127.0.0.1"
+    port: 7610
+    waitResultTimeout: "10s"
+    ignoreResults: false
+  http:
+    host: "127.0.0.1"
+    port: 7611
+    timeout: "10s"
+    maxRetries: 5
+  senderPhoneNumber: "+380000000000"
+  enableListening: false
+
+worker:
+  pollInterval: "1s"
+  leaseDuration: "5m"
+  perAttemptTimeout: "60s"
+  concurrency: 1
+  baseBackoff: "5s"
+  maxBackoff: "1h"
+
+cron:
+  cleanupOldFiles:
+    enabled: true
+    schedule: "0 * * * * *"
+    directories: ["./tmp"]
+    fileTtl: "10m"
+  timeoutReaper:
+    enabled: true
+    schedule: "0 * * * * *"
