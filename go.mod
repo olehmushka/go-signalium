@@ -4,22 +4,22 @@ go 1.26.0
 
 require (
 	github.com/google/uuid v1.6.0
-	github.com/jackc/pgx/v5 v5.9.2
-	github.com/minio/minio-go/v7 v7.2.0
-	github.com/palantir/conjure-go-runtime/v3 v3.12.0
+	github.com/jackc/pgx/v5 v5.10.0
+	github.com/minio/minio-go/v7 v7.2.1
+	github.com/palantir/conjure-go-runtime/v3 v3.18.0
 	github.com/palantir/pkg/datetime v1.4.0
 	github.com/palantir/pkg/metrics v1.10.1
 	github.com/palantir/pkg/safejson v1.2.0
 	github.com/palantir/pkg/safelong v1.3.0
 	github.com/palantir/pkg/safeyaml v1.2.0
 	github.com/palantir/pkg/uuid v1.3.0
-	github.com/palantir/witchcraft-go-error v1.44.0
-	github.com/palantir/witchcraft-go-logging v1.66.0
-	github.com/palantir/witchcraft-go-router v1.2.0
+	github.com/palantir/witchcraft-go-error v1.46.0
+	github.com/palantir/witchcraft-go-logging v1.69.0
+	github.com/palantir/witchcraft-go-router v1.3.0
 	github.com/palantir/witchcraft-go-server/v3 v3.11.0
 	github.com/stretchr/testify v1.11.1
-	github.com/testcontainers/testcontainers-go v0.42.0
-	github.com/testcontainers/testcontainers-go/modules/postgres v0.42.0
+	github.com/testcontainers/testcontainers-go v0.43.0
+	github.com/testcontainers/testcontainers-go/modules/postgres v0.43.0
 	go.uber.org/fx v1.24.0
 	gopkg.in/yaml.v3 v3.0.1
 )
@@ -59,7 +59,7 @@ require (
 	github.com/minio/md5-simd v1.1.2 // indirect
 	github.com/moby/docker-image-spec v1.3.1 // indirect
 	github.com/moby/go-archive v0.2.0 // indirect
-	github.com/moby/moby/api v1.54.1 // indirect
+	github.com/moby/moby/api v1.54.2 // indirect
 	github.com/moby/moby/client v0.4.0 // indirect
 	github.com/moby/patternmatcher v0.6.1 // indirect
 	github.com/moby/sys/sequential v0.6.0 // indirect
@@ -80,15 +80,15 @@ require (
 	github.com/palantir/pkg/tlsconfig v1.5.0 // indirect
 	github.com/palantir/pkg/transform v1.2.0 // indirect
 	github.com/palantir/witchcraft-go-health/v2 v2.3.0 // indirect
-	github.com/palantir/witchcraft-go-params v1.40.0 // indirect
+	github.com/palantir/witchcraft-go-params v1.42.0 // indirect
 	github.com/palantir/witchcraft-go-tasks v0.11.0 // indirect
-	github.com/palantir/witchcraft-go-tracing v1.42.0 // indirect
+	github.com/palantir/witchcraft-go-tracing v1.44.0 // indirect
 	github.com/philhofer/fwd v1.2.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/power-devops/perfstat v0.0.0-20240221224432-82ca36839d55 // indirect
 	github.com/rs/xid v1.6.0 // indirect
-	github.com/shirou/gopsutil/v4 v4.26.3 // indirect
+	github.com/shirou/gopsutil/v4 v4.26.5 // indirect
 	github.com/sirupsen/logrus v1.9.4 // indirect
 	github.com/tinylib/msgp v1.6.1 // indirect
 	github.com/tklauser/go-sysconf v0.3.16 // indirect
@@ -102,13 +102,13 @@ require (
 	go.opentelemetry.io/otel/trace v1.41.0 // indirect
 	go.uber.org/dig v1.19.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	go.uber.org/zap v1.27.1 // indirect
+	go.uber.org/zap v1.28.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
-	golang.org/x/crypto v0.51.0 // indirect
-	golang.org/x/net v0.55.0 // indirect
-	golang.org/x/sync v0.20.0 // indirect
-	golang.org/x/sys v0.45.0 // indirect
-	golang.org/x/text v0.37.0 // indirect
+	golang.org/x/crypto v0.53.0 // indirect
+	golang.org/x/net v0.56.0 // indirect
+	golang.org/x/sync v0.21.0 // indirect
+	golang.org/x/sys v0.46.0 // indirect
+	golang.org/x/text v0.38.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 	gopkg.in/ini.v1 v1.67.2 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
