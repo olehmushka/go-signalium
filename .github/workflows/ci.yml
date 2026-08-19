@@ -54,7 +54,7 @@ jobs:
         run: go test -race -count=1 -coverprofile=cover.out -covermode=atomic ./...
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v6
+        uses: codecov/codecov-action@v7
         with:
           files: cover.out
           fail_ci_if_error: false
