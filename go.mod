@@ -6,7 +6,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.10.0
 	github.com/minio/minio-go/v7 v7.3.0
-	github.com/palantir/conjure-go-runtime/v3 v3.22.0
+	github.com/palantir/conjure-go-runtime/v3 v3.23.0
 	github.com/palantir/pkg/datetime v1.4.0
 	github.com/palantir/pkg/metrics v1.10.1
 	github.com/palantir/pkg/safejson v1.2.0
@@ -15,9 +15,9 @@ require (
 	github.com/palantir/pkg/uuid v1.3.0
 	github.com/palantir/witchcraft-go-error v1.47.0
 	github.com/palantir/witchcraft-go-logging v1.70.0
-	github.com/palantir/witchcraft-go-router v1.4.0
+	github.com/palantir/witchcraft-go-router v1.5.0
 	github.com/palantir/witchcraft-go-server/v3 v3.11.0
-	github.com/stretchr/testify v1.12.0
+	github.com/stretchr/testify v1.12.1
 	github.com/testcontainers/testcontainers-go v0.44.0
 	github.com/testcontainers/testcontainers-go/modules/postgres v0.44.0
 	go.uber.org/fx v1.24.0
@@ -107,7 +107,7 @@ require (
 	golang.org/x/sync v0.22.0 // indirect
 	golang.org/x/sys v0.47.0 // indirect
 	golang.org/x/text v0.41.0 // indirect
-	google.golang.org/protobuf v1.36.11 // indirect
+	google.golang.org/protobuf v1.36.12 // indirect
 	gopkg.in/ini.v1 v1.67.3 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
