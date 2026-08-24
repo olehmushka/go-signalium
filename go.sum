@@ -161,10 +161,10 @@ github.com/palantir/witchcraft-go-health/v2 v2.3.0 h1:0OeYH8Hx4bicGupgx2RG7r4Mvz
 github.com/palantir/witchcraft-go-health/v2 v2.3.0/go.mod h1:0qPj/YmSoQ6wVi1QqCSdpgiBWDM2kf97fPTvWhBm/ww=
 github.com/palantir/witchcraft-go-logging v1.70.0 h1:dQ8SnP+LeaRi0j5otnCi0PxT1Q6Pcl2Cl6Y/WdfI+SQ=
 github.com/palantir/witchcraft-go-logging v1.70.0/go.mod h1:plu2gClRwW31TGLFfuwzhMGTfI/gxIvtk9vihBYGMl0=
-github.com/palantir/witchcraft-go-params v1.43.0 h1:h+/MaedNBSMtCk5uK8I4LlIc6viRL/LVbChFt4jl4OE=
-github.com/palantir/witchcraft-go-params v1.43.0/go.mod h1:1iVdjQHq5wYD8/3O8XVEv7OkczWENtLeHVwAv8vHaBY=
-github.com/palantir/witchcraft-go-router v1.5.0 h1:6W0soI4aY0va99GpQ1QlYcX93badoPBasH+bIPbuaOA=
-github.com/palantir/witchcraft-go-router v1.5.0/go.mod h1:l0NgMjglgZnoku38LfmV+heJbdmN8WcglDdqyfqTuX4=
+github.com/palantir/witchcraft-go-params v1.44.0 h1:ZKYQEpjPVPJCjF8pnS7/zwo89f2B2e5QsLK+XSD4SYo=
+github.com/palantir/witchcraft-go-params v1.44.0/go.mod h1:AFNwy/sZbOO4WJ5QAkXxm4ar0R8/39RyvpJ9ktKhI2k=
+github.com/palantir/witchcraft-go-router v1.6.0 h1:kDXrFB3vIa3Q1Fmdea0opNc/VJ6S4NeKwdra7vpkdVM=
+github.com/palantir/witchcraft-go-router v1.6.0/go.mod h1:twmxfiIA+s+TTFOdNYQuBAkiBLkJ80RtdN5lIAUVfRc=
 github.com/palantir/witchcraft-go-server/v3 v3.11.0 h1:LZmcUVV/IVZM8QE4D5uCeO8LHTRzqIISYE0BXf0stzo=
 github.com/palantir/witchcraft-go-server/v3 v3.11.0/go.mod h1:5NlBgCU1ccA7IONKcvBFcHqmI6Nkn2g/Rpuh6+v8/Y8=
 github.com/palantir/witchcraft-go-tasks v0.11.0 h1:XXooWiRkupllbuBDBZ8i3QjB37gOS70x5PjXGBRCZzw=
