@@ -6,7 +6,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.10.0
 	github.com/minio/minio-go/v7 v7.3.0
-	github.com/palantir/conjure-go-runtime/v3 v3.23.0
+	github.com/palantir/conjure-go-runtime/v3 v3.24.0
 	github.com/palantir/pkg/datetime v1.4.0
 	github.com/palantir/pkg/metrics v1.10.1
 	github.com/palantir/pkg/safejson v1.2.0
@@ -15,7 +15,7 @@ require (
 	github.com/palantir/pkg/uuid v1.3.0
 	github.com/palantir/witchcraft-go-error v1.47.0
 	github.com/palantir/witchcraft-go-logging v1.70.0
-	github.com/palantir/witchcraft-go-router v1.5.0
+	github.com/palantir/witchcraft-go-router v1.7.0
 	github.com/palantir/witchcraft-go-server/v3 v3.11.0
 	github.com/stretchr/testify v1.12.1
 	github.com/testcontainers/testcontainers-go v0.44.0
@@ -79,7 +79,7 @@ require (
 	github.com/palantir/pkg/tlsconfig v1.5.0 // indirect
 	github.com/palantir/pkg/transform v1.2.0 // indirect
 	github.com/palantir/witchcraft-go-health/v2 v2.3.0 // indirect
-	github.com/palantir/witchcraft-go-params v1.43.0 // indirect
+	github.com/palantir/witchcraft-go-params v1.45.0 // indirect
 	github.com/palantir/witchcraft-go-tasks v0.11.0 // indirect
 	github.com/palantir/witchcraft-go-tracing v1.46.0 // indirect
 	github.com/philhofer/fwd v1.2.0 // indirect

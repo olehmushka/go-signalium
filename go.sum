@@ -117,8 +117,8 @@ github.com/opencontainers/image-spec v1.1.1 h1:y0fUlFfIZhPF1W537XOLg0/fcx6zcHCJw
 github.com/opencontainers/image-spec v1.1.1/go.mod h1:qpqAh3Dmcf36wStyyWU+kCeDgrGnAve2nCC8+7h8Q0M=
 github.com/openzipkin/zipkin-go v0.4.3 h1:9EGwpqkgnwdEIJ+Od7QVSEIH+ocmm5nPat0G7sjsSdg=
 github.com/openzipkin/zipkin-go v0.4.3/go.mod h1:M9wCJZFWCo2RiY+o1eBCEMe0Dp2S5LDHcMZmk3RmK7c=
-github.com/palantir/conjure-go-runtime/v3 v3.23.0 h1:8JAcr6nMurHYg5enOuYndm2aPcqzBDJayag+vaXJVF8=
-github.com/palantir/conjure-go-runtime/v3 v3.23.0/go.mod h1:KOO9SduNjxdXF13gwmNcl0LsE5uQEJsgRLO6Hpv6/C4=
+github.com/palantir/conjure-go-runtime/v3 v3.24.0 h1:0DvJ8m0fVFOEh4vcj6zIB+LRvp67gztabB5KjxGNk+Y=
+github.com/palantir/conjure-go-runtime/v3 v3.24.0/go.mod h1:eSQj1V8I30nZYDbtDW68Ri2ugAv7fuJlPysG0z5/MwI=
 github.com/palantir/go-encrypted-config-value v1.41.0 h1:uKRIiDtX+4ymzsyYhzO2WhamEYATO6btHof9n61p2hQ=
 github.com/palantir/go-encrypted-config-value v1.41.0/go.mod h1:DMcichhauWamfy1xzJ1eT6OF6YeRgzaDsNZ3RQfFCwY=
 github.com/palantir/go-metrics v1.1.1 h1:YL/UmptBjrC6iSCTVr7vfuIcjL0M359Da3/gBGNny10=
@@ -161,10 +161,10 @@ github.com/palantir/witchcraft-go-health/v2 v2.3.0 h1:0OeYH8Hx4bicGupgx2RG7r4Mvz
 github.com/palantir/witchcraft-go-health/v2 v2.3.0/go.mod h1:0qPj/YmSoQ6wVi1QqCSdpgiBWDM2kf97fPTvWhBm/ww=
 github.com/palantir/witchcraft-go-logging v1.70.0 h1:dQ8SnP+LeaRi0j5otnCi0PxT1Q6Pcl2Cl6Y/WdfI+SQ=
 github.com/palantir/witchcraft-go-logging v1.70.0/go.mod h1:plu2gClRwW31TGLFfuwzhMGTfI/gxIvtk9vihBYGMl0=
-github.com/palantir/witchcraft-go-params v1.43.0 h1:h+/MaedNBSMtCk5uK8I4LlIc6viRL/LVbChFt4jl4OE=
-github.com/palantir/witchcraft-go-params v1.43.0/go.mod h1:1iVdjQHq5wYD8/3O8XVEv7OkczWENtLeHVwAv8vHaBY=
-github.com/palantir/witchcraft-go-router v1.5.0 h1:6W0soI4aY0va99GpQ1QlYcX93badoPBasH+bIPbuaOA=
-github.com/palantir/witchcraft-go-router v1.5.0/go.mod h1:l0NgMjglgZnoku38LfmV+heJbdmN8WcglDdqyfqTuX4=
+github.com/palantir/witchcraft-go-params v1.45.0 h1:J1gJYvIzv0d/LzlmuYSXqSl6Z0r4IyqZYQ2G+uz+KG0=
+github.com/palantir/witchcraft-go-params v1.45.0/go.mod h1:g8yBKlKoLL7WpuLmueA6KYCN1ausuxhFnPA2vKyf/FU=
+github.com/palantir/witchcraft-go-router v1.7.0 h1:F2te/D3LO9bT2obJxT9cxhFQ+Zft3lngZ3xp4fFD/u0=
+github.com/palantir/witchcraft-go-router v1.7.0/go.mod h1:4jTj9MLCgo9tuRv6rs7wf//BlcZeQmWdszdWfIpt7Ro=
 github.com/palantir/witchcraft-go-server/v3 v3.11.0 h1:LZmcUVV/IVZM8QE4D5uCeO8LHTRzqIISYE0BXf0stzo=
 github.com/palantir/witchcraft-go-server/v3 v3.11.0/go.mod h1:5NlBgCU1ccA7IONKcvBFcHqmI6Nkn2g/Rpuh6+v8/Y8=
 github.com/palantir/witchcraft-go-tasks v0.11.0 h1:XXooWiRkupllbuBDBZ8i3QjB37gOS70x5PjXGBRCZzw=
