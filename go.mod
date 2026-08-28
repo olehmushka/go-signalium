@@ -13,8 +13,8 @@ require (
 	github.com/palantir/pkg/safelong v1.3.0
 	github.com/palantir/pkg/safeyaml v1.2.0
 	github.com/palantir/pkg/uuid v1.3.0
-	github.com/palantir/witchcraft-go-error v1.47.0
-	github.com/palantir/witchcraft-go-logging v1.70.0
+	github.com/palantir/witchcraft-go-error v1.48.0
+	github.com/palantir/witchcraft-go-logging v1.71.0
 	github.com/palantir/witchcraft-go-router v1.7.0
 	github.com/palantir/witchcraft-go-server/v3 v3.11.0
 	github.com/stretchr/testify v1.12.1
@@ -79,7 +79,7 @@ require (
 	github.com/palantir/pkg/tlsconfig v1.5.0 // indirect
 	github.com/palantir/pkg/transform v1.2.0 // indirect
 	github.com/palantir/witchcraft-go-health/v2 v2.3.0 // indirect
-	github.com/palantir/witchcraft-go-params v1.45.0 // indirect
+	github.com/palantir/witchcraft-go-params v1.46.0 // indirect
 	github.com/palantir/witchcraft-go-tasks v0.11.0 // indirect
 	github.com/palantir/witchcraft-go-tracing v1.46.0 // indirect
 	github.com/philhofer/fwd v1.2.0 // indirect
