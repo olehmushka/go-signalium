@@ -1,21 +1,21 @@
 module github.com/olehmushka/go-signalium
 
-go 1.26.0
+go 1.27.0
 
 require (
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.11.0
 	github.com/minio/minio-go/v7 v7.3.0
-	github.com/palantir/conjure-go-runtime/v3 v3.25.0
+	github.com/palantir/conjure-go-runtime/v3 v3.28.0
 	github.com/palantir/pkg/datetime v1.4.0
 	github.com/palantir/pkg/metrics v1.10.1
 	github.com/palantir/pkg/safejson v1.3.0
 	github.com/palantir/pkg/safelong v1.3.0
 	github.com/palantir/pkg/safeyaml v1.2.0
 	github.com/palantir/pkg/uuid v1.3.0
-	github.com/palantir/witchcraft-go-error v1.49.0
-	github.com/palantir/witchcraft-go-logging v1.72.0
-	github.com/palantir/witchcraft-go-router v1.8.0
+	github.com/palantir/witchcraft-go-error v1.50.0
+	github.com/palantir/witchcraft-go-logging v1.73.0
+	github.com/palantir/witchcraft-go-router v1.9.0
 	github.com/palantir/witchcraft-go-server/v3 v3.11.0
 	github.com/stretchr/testify v1.12.1
 	github.com/testcontainers/testcontainers-go v0.44.0
@@ -70,7 +70,7 @@ require (
 	github.com/openzipkin/zipkin-go v0.4.3 // indirect
 	github.com/palantir/go-encrypted-config-value v1.41.0 // indirect
 	github.com/palantir/go-metrics v1.1.1 // indirect
-	github.com/palantir/pkg v1.1.0 // indirect
+	github.com/palantir/pkg v1.2.0 // indirect
 	github.com/palantir/pkg/bytesbuffers v1.3.0 // indirect
 	github.com/palantir/pkg/refreshable/v2 v2.9.0 // indirect
 	github.com/palantir/pkg/retry v1.3.0 // indirect
@@ -79,9 +79,9 @@ require (
 	github.com/palantir/pkg/tlsconfig v1.5.0 // indirect
 	github.com/palantir/pkg/transform v1.2.0 // indirect
 	github.com/palantir/witchcraft-go-health/v2 v2.3.0 // indirect
-	github.com/palantir/witchcraft-go-params v1.46.0 // indirect
+	github.com/palantir/witchcraft-go-params v1.47.0 // indirect
 	github.com/palantir/witchcraft-go-tasks v0.11.0 // indirect
-	github.com/palantir/witchcraft-go-tracing v1.47.0 // indirect
+	github.com/palantir/witchcraft-go-tracing v1.48.0 // indirect
 	github.com/philhofer/fwd v1.2.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/power-devops/perfstat v0.0.0-20240221224432-82ca36839d55 // indirect
@@ -102,11 +102,11 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.28.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
-	golang.org/x/crypto v0.55.0 // indirect
-	golang.org/x/net v0.58.0 // indirect
-	golang.org/x/sync v0.22.0 // indirect
-	golang.org/x/sys v0.47.0 // indirect
-	golang.org/x/text v0.41.0 // indirect
+	golang.org/x/crypto v0.57.0 // indirect
+	golang.org/x/net v0.59.0 // indirect
+	golang.org/x/sync v0.23.0 // indirect
+	golang.org/x/sys v0.48.0 // indirect
+	golang.org/x/text v0.42.0 // indirect
 	google.golang.org/protobuf v1.36.12 // indirect
 	gopkg.in/ini.v1 v1.67.3 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
